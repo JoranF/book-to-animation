@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+from datetime import datetime
 import html
 import json
 import os
@@ -17,7 +18,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, pipeline, plan as plan_mod, script as script_mod
+from . import config, pipeline, plan as plan_mod, postiz, script as script_mod
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -69,7 +70,8 @@ def short_path(short_id: str, name: str) -> Path:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"ok": True, "claude_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY"))}
+            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY")),
+            "postiz_set": postiz.configured()}
 
 
 @app.post("/api/shorts", dependencies=[Depends(auth)])
@@ -139,6 +141,40 @@ def update_feedback(short_id: str, body: Feedback) -> dict[str, Any]:
     return meta
 
 
+class Publish(BaseModel):
+    channels: list[str] = Field(min_length=1, max_length=20)
+    when: datetime | None = None     # empty = post now
+    draft: bool = False
+
+
+@app.get("/api/postiz/channels", dependencies=[Depends(auth)])
+def postiz_channels() -> dict[str, Any]:
+    if not postiz.configured():
+        return {"configured": False, "channels": []}
+    try:
+        return {"configured": True, "channels": postiz.channels()}
+    except RuntimeError as exc:
+        raise HTTPException(502, str(exc)) from exc
+
+
+@app.post("/api/shorts/{short_id}/publish", dependencies=[Depends(auth)])
+def publish_short(short_id: str, body: Publish) -> dict[str, Any]:
+    """Send a finished Short to Postiz: post now, schedule, or save as draft."""
+    path = short_path(short_id, "meta.json")
+    video = short_path(short_id, "short.mp4")
+    if not (path.exists() and video.exists()):
+        raise HTTPException(404, "Unknown Short")
+    meta = json.loads(path.read_text())
+    try:
+        sent = postiz.publish(meta, video, body.channels, body.when, body.draft)
+    except RuntimeError as exc:
+        raise HTTPException(502, str(exc)) from exc
+    meta = json.loads(path.read_text())
+    meta.setdefault("posts", []).append(sent)
+    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+    return sent
+
+
 @app.get("/files/{short_id}/{name}", dependencies=[Depends(auth)])
 def get_file(short_id: str, name: str) -> FileResponse:
     path = short_path(short_id, name)
@@ -162,7 +198,13 @@ video{width:100%;border-radius:8px;background:#000}small{color:#aaa}.job{padding
 <div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div>
 <script>
 const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts'),epEl=document.getElementById('episode');
-let eps={},madeKey='';
+let eps={},madeKey='',chans=[];
+fetch('/api/postiz/channels').then(r=>r.ok?r.json():{channels:[]}).then(d=>{chans=d.channels;shortsEl.dataset.h='';load()});
+async function post(e,id){e.preventDefault();const f=new FormData(e.target),msg=e.target.querySelector('.msg'),when=f.get('when');
+const channels=f.getAll('c');if(!channels.length){msg.textContent=' Choose a channel';return}
+if(!confirm((when?'Schedule':'Post NOW')+' on '+channels.length+' channel(s)?'))return;msg.textContent=' Sending...';
+const r=await fetch('/api/shorts/'+id+'/publish',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({channels,when:when?new Date(when).toISOString():null})});
+msg.textContent=r.ok?' Sent to Postiz':' Failed: '+((await r.json()).detail||r.status);if(r.ok){shortsEl.dataset.h='';load()}}
 function pick(){const e=eps[epEl.value],a=document.getElementById('angle');document.getElementById('own').hidden=epEl.value!=='';
 a.hidden=!e;if(e)a.innerHTML=`<b>${esc(e.hook)}</b><br><small>${esc(e.format)}: ${esc(e.angle)}</small>`}
 async function plan(){const book=document.querySelector('[name=book]').value;
@@ -179,8 +221,11 @@ const esc0=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function load(){const d=await (await fetch('/api/shorts')).json();
 jobsEl.innerHTML=d.jobs.map(j=>`<div class=job>${esc(j.topic)}: <b>${esc(j.status)}</b> (${esc(j.step)}) ${esc(j.error)}</div>`).join('');
 const html=d.shorts.map(s=>`<div><video controls preload=none poster="/files/${esc(s.id)}/thumb.jpg" src="/files/${esc(s.id)}/short.mp4"></video>
-<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}</small></div>`).join('');
-if(shortsEl.dataset.h!==html){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
+<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}</small>
+${(s.posts||[]).map(p=>`<br><small>${esc(p.type)} ${esc(p.date.slice(0,16).replace('T',' '))} UTC: ${esc(p.channels.map(c=>c.platform).join(', '))}</small>`).join('')}
+${chans.length?`<details><summary>Post with Postiz</summary><form onsubmit="post(event,'${esc(s.id)}')">`+chans.map(c=>`<label><input type=checkbox name=c value="${esc(c.id)}" style="width:auto"> ${esc(c.platform)}: ${esc(c.name)}</label><br>`).join('')+
+`<input type=datetime-local name=when title="Leave empty to post now"><button>Post or schedule</button><small class=msg></small></form></details>`:''}</div>`).join('');
+if(shortsEl.dataset.h!==html&&!shortsEl.querySelector('details[open]')){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
 plan();load();setInterval(()=>{load();plan()},5000)</script>"""
 
 

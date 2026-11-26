@@ -100,6 +100,16 @@ or `"next"`; or `"topic"` and `"idea"` for a free topic), `GET /api/shorts`,
 `GET /api/shorts/{id}`, `GET /files/{id}/short.mp4`,
 `PATCH /api/shorts/{id}/feedback`.
 
+## Posting (Postiz)
+
+With `POSTIZ_URL` and `POSTIZ_API_KEY` set, every Short in the gallery gets a
+"Post with Postiz" panel: tick the channels (YouTube, TikTok, Instagram, ...),
+leave the time empty to post now or pick a time to schedule. The video is
+uploaded to Postiz and each platform gets fitting settings (`b2a/postiz.py`).
+Nothing is posted automatically. What was sent is kept in `meta.json` under
+`posts`. API: `GET /api/postiz/channels`,
+`POST /api/shorts/{id}/publish {"channels": [...], "when": "2026-12-01T18:00:00+01:00"}`.
+
 ## Feedback loop
 
 `meta.json` stores what we want to learn from per video: episode, chapter,
