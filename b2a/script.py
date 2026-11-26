@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from . import config, llm, plan as plan_mod, stage as stage_mod
+from .voice import strip_tags
 
 SYSTEM = """You write scripts for a YouTube Shorts channel that explains ideas \
 from philosophy and psychology books as short animated stories.
@@ -41,6 +42,14 @@ character instead). Whoever speaks must be an actor in that scene.
 - Engagement comes first: tension in the first two seconds, a new beat every \
 3 to 4 seconds, one moment of friction or humour between the two, and the \
 answer to the hook only near the end.
+- "narration" is acted by a voice model that follows delivery tags in square \
+brackets. Direct it like an actor: start a line with one tag for the emotion \
+when it helps ([sighs], [laughs], [whispers], [shouts], [curious], \
+[mischievously], [annoyed], [deadpan]) and put [pause] or [long pause] \
+exactly where a beat of silence makes the line land: before a punchline, \
+after a hard question, before the last line. Use "..." for a trailing-off \
+thought and a dash for a cut-off. At most 2 tags per line, none on most \
+narrator lines. Tags are not shown in the captions and do not count as words.
 - "image": one sentence describing the picture for a human reader.
 - "stage": the 3D scene, built as described below.
 
@@ -66,8 +75,11 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
     if not 5 <= len(scenes) <= 16:
         raise ValueError(f"Expected 5-16 scenes, got {len(scenes)}")
     for number, scene in enumerate(scenes, 1):
-        if not str(scene.get("narration", "")).strip():
+        spoken = str(scene.get("voice_text") or scene.get("narration") or "").strip()
+        if not strip_tags(spoken):
             raise ValueError(f"Scene {number} is missing 'narration'")
+        scene["voice_text"] = spoken                 # with [tags], for the voice
+        scene["narration"] = strip_tags(spoken)      # clean, for captions and timing
         if scene.get("speaker") not in config.SPEAKERS:
             scene["speaker"] = "narrator"
         try:

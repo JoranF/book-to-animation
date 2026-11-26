@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -117,12 +118,13 @@ def speaker_of(scene: dict[str, Any]) -> str:
     return speaker if speaker in config.SPEAKERS else "narrator"
 
 
-def join_parts(parts: list[Path], gap: float, audio: Path) -> Path:
+def join_parts(parts: list[Path], gap: float | list[float], audio: Path) -> Path:
     """Glue the per-scene recordings together with a short pause in between."""
     inputs: list[str] = []
     for part in parts:
         inputs += ["-i", str(part)]
-    chain = "".join(f"[{i}:a]apad=pad_dur={gap}[a{i}];" for i in range(len(parts)))
+    gaps = gap if isinstance(gap, list) else [gap] * len(parts)
+    chain = "".join(f"[{i}:a]apad=pad_dur={gaps[i]}[a{i}];" for i in range(len(parts)))
     chain += "".join(f"[a{i}]" for i in range(len(parts))) + f"concat=n={len(parts)}:v=0:a=1[a]"
     proc = subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", *inputs,
                            "-filter_complex", chain, "-map", "[a]", str(audio)],
@@ -159,41 +161,110 @@ def voice_piper(script: dict[str, Any], out_dir: Path, audio_duration: Callable[
 
 # --- ElevenLabs (own key) -----------------------------------------------------
 
-def voice_elevenlabs(script: dict[str, Any], out_dir: Path, audio_duration: Callable[[Path], float]) -> tuple[Path, list[Word]]:
-    """One request per scene with exact timings; each speaker has a voice."""
-    key = os.environ.get("ELEVENLABS_API_KEY")
-    if not key:
-        raise RuntimeError("ELEVENLABS_API_KEY is not set")
+TAG = re.compile(r"\s*\[[^\]\n]{1,40}\]\s*")
+
+
+def strip_tags(text: str) -> str:
+    """Remove delivery tags like [sighs] or [pause]: they are spoken as acting, not as words."""
+    return re.sub(r"\s+", " ", TAG.sub(" ", text)).strip()
+
+
+def drop_tag_characters(alignment: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Timings may include the characters of the tags; captions must not."""
+    if not alignment or "characters" not in alignment:
+        return alignment
+    starts = alignment.get("character_start_times_seconds") or []
+    ends = alignment.get("character_end_times_seconds") or []
+    keep, depth = [], 0
+    for i, ch in enumerate(alignment["characters"]):
+        depth += ch == "["
+        if depth == 0:
+            keep.append(i)
+        depth -= ch == "]" and depth > 0
+    return {"characters": [alignment["characters"][i] for i in keep],
+            "character_start_times_seconds": [starts[i] for i in keep if i < len(starts)],
+            "character_end_times_seconds": [ends[i] for i in keep if i < len(ends)]}
+
+
+def acts(model: str) -> bool:
+    """Models that understand delivery tags such as [sighs] and [pause]."""
+    return model.startswith(("eleven_v3", "eleven_v4"))
+
+
+class ModelRejected(RuntimeError):
+    pass
+
+
+def _elevenlabs_run(script: dict[str, Any], out_dir: Path, audio_duration: Callable[[Path], float],
+                    key: str, model: str) -> tuple[Path, list[Word]]:
     parts_dir = out_dir / "voice_parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
     scenes = script["scenes"]
     words: list[Word] = []
     parts: list[Path] = []
-    cursor, gap = 0.0, 0.12
+    gaps: list[float] = []
+    cursor = 0.0
     for i, scene in enumerate(scenes):
         text = scene["narration"].strip()
-        body: dict[str, Any] = {"text": text, "model_id": config.ELEVENLABS_MODEL}
-        # Neighbouring lines keep the melody natural across scene cuts.
-        if i > 0 and speaker_of(scenes[i - 1]) == speaker_of(scene):
-            body["previous_text"] = scenes[i - 1]["narration"].strip()
-        if i + 1 < len(scenes) and speaker_of(scenes[i + 1]) == speaker_of(scene):
-            body["next_text"] = scenes[i + 1]["narration"].strip()
+        body: dict[str, Any] = {"model_id": model, "voice_settings": {
+            "stability": config.ELEVENLABS_STABILITY, "similarity_boost": 0.75}}
+        if acts(model):
+            # The acting model gets the line with its delivery tags and pauses.
+            body["text"] = (scene.get("voice_text") or text).strip()
+        else:
+            body["text"] = text
+            # Neighbouring lines keep the melody natural across scene cuts.
+            if i > 0 and speaker_of(scenes[i - 1]) == speaker_of(scene):
+                body["previous_text"] = scenes[i - 1]["narration"].strip()
+            if i + 1 < len(scenes) and speaker_of(scenes[i + 1]) == speaker_of(scene):
+                body["next_text"] = scenes[i + 1]["narration"].strip()
         voice_id = config.ELEVENLABS_VOICES[speaker_of(scene)]
         resp = requests.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/with-timestamps",
             params={"output_format": "mp3_44100_128"},
-            headers={"xi-api-key": key}, json=body, timeout=120)
+            headers={"xi-api-key": key}, json=body, timeout=180)
+        if resp.status_code in (400, 404, 422):
+            raise ModelRejected(f"ElevenLabs refused model {model} ({resp.status_code}): {resp.text[:300]}")
         if resp.status_code >= 400:
             raise RuntimeError(f"ElevenLabs failed ({resp.status_code}): {resp.text[:300]}")
         data = resp.json()
         part = parts_dir / f"{i:02d}.mp3"
         part.write_bytes(base64.b64decode(data["audio_base64"]))
         seconds = audio_duration(part)
-        timed = align_to_script(text, parse_timestamps(data.get("alignment"))) or even_timings(text, seconds)
+        timed = parse_timestamps(drop_tag_characters(data.get("alignment")))
+        timed = align_to_script(text, timed) if len(timed) == len(text.split()) else even_timings(text, seconds)
         words += [{"text": w["text"], "start": w["start"] + cursor, "end": w["end"] + cursor} for w in timed]
+        # A beat of silence when the other person answers, less inside one turn.
+        gap = 0.16 if i + 1 < len(scenes) and speaker_of(scenes[i + 1]) != speaker_of(scene) else 0.08
+        gaps.append(gap)
         cursor += seconds + gap
         parts.append(part)
-    return join_parts(parts, gap, out_dir / "voice.wav"), words
+    return join_parts(parts, gaps, out_dir / "voice.wav"), words
+
+
+def voice_elevenlabs(script: dict[str, Any], out_dir: Path, audio_duration: Callable[[Path], float]) -> tuple[Path, list[Word]]:
+    """One request per scene with exact timings; each speaker has a voice.
+
+    Tries the configured model first (the expressive one that follows delivery
+    tags) and falls back to the older model when the account or the endpoint
+    does not accept it."""
+    key = os.environ.get("ELEVENLABS_API_KEY")
+    if not key:
+        raise RuntimeError("ELEVENLABS_API_KEY is not set")
+    models = list(dict.fromkeys([config.ELEVENLABS_MODEL, config.ELEVENLABS_FALLBACK_MODEL]))
+    for model in models:
+        try:
+            result = _elevenlabs_run(script, out_dir, audio_duration, key, model)
+            used_model.update(name=model)
+            return result
+        except ModelRejected as exc:
+            if model == models[-1]:
+                raise RuntimeError(str(exc)) from exc
+            print(f"[voice] {exc}; trying {models[-1]}")
+    raise RuntimeError("no ElevenLabs model available")
+
+
+used_model: dict[str, str] = {}
 
 
 def make_voice(script: dict[str, Any], out_dir: Path,

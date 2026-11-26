@@ -13,7 +13,7 @@ Philosopher and the Youth as recurring characters.
 | --- | --- | --- |
 | 0. Episode plan | Every book is split into chapters with a list of episodes. One episode is one narrow idea with its own hook, angle and format, so the Shorts do not all look alike | `books/<book>/episodes.json`, `b2a/plan.py` |
 | 1. Script | Hook, a fast conversation between the youth and the philosopher in our own words, original examples, no book quotes. Also describes every scene as a 3D "stage". | Claude API (`ANTHROPIC_API_KEY`), `b2a/llm.py` |
-| 2. Voice | Fixed voices with word timings for captions. A scene can be spoken by the narrator, the philosopher or the youth (`"speaker"`) | ElevenLabs with `ELEVENLABS_API_KEY`, else the free built-in Piper voice |
+| 2. Voice | Fixed voices with word timings for captions. A scene can be spoken by the narrator, the philosopher or the youth (`"speaker"`) | ElevenLabs Eleven v4 with `ELEVENLABS_API_KEY` (follows delivery tags like `[sighs]` and `[pause]` that the script writer puts in each line; falls back to Multilingual v2 if v4 is refused), else the free built-in Piper voice |
 | 3. Visuals | Real low-poly 3D: characters, sets, props and movements are built in code and rendered by headless Blender | `b2a/world.py` |
 | 4. Edit | Cuts on the voice, CRT look, word-by-word captions, chiptune music composed in code, loudness | FFmpeg |
 

@@ -215,6 +215,7 @@ def test_elevenlabs_voice_per_speaker(tmp_path: Path, monkeypatch):
             self.text = text
 
         def json(self):
+            assert self.text.startswith("[")       # the acting model gets the tags
             starts = [i * 0.05 for i in range(len(self.text))]
             return {"audio_base64": base64.b64encode(sample.read_bytes()).decode(),
                     "alignment": {"characters": list(self.text),
@@ -224,14 +225,32 @@ def test_elevenlabs_voice_per_speaker(tmp_path: Path, monkeypatch):
     def fake_post(url, params, headers, json, timeout):
         seen.append(url.split("/")[-2])
         assert headers["xi-api-key"] == "k"
-        return Reply(json["text"])
+        models.append(json["model_id"])
+        if json["model_id"] == "eleven_v4" and reject_v4:
+            return type("No", (), {"status_code": 400, "text": "model not available"})()
+        return Reply(json["text"] if json["model_id"] == "eleven_v4" else "[x] " + json["text"])
 
     monkeypatch.setenv("ELEVENLABS_API_KEY", "k")
     monkeypatch.setattr(voice.requests, "post", fake_post)
-    script = {"scenes": [{"narration": "Stop right there."},
-                         {"narration": "Whose task is this?", "speaker": "philosopher"}]}
+    models, reject_v4 = [], False
+    script = {"scenes": [{"narration": "Stop right there.", "voice_text": "[shouts] Stop [pause] right there."},
+                         {"narration": "Whose task is this?", "voice_text": "[curious] Whose task is this?",
+                          "speaker": "philosopher"}]}
     audio, words, backend = voice.make_voice(script, tmp_path, render.duration)
+    assert models == ["eleven_v4", "eleven_v4"] and voice.used_model["name"] == "eleven_v4"
     assert backend == "elevenlabs" and audio.exists()
     assert seen == [config.ELEVENLABS_VOICES["narrator"], config.ELEVENLABS_VOICES["philosopher"]]
     assert [w["text"] for w in words] == ["Stop", "right", "there.", "Whose", "task", "is", "this?"]
     assert words[3]["start"] > 1.0   # second scene starts after the first recording
+    models.clear(); seen.clear(); reject_v4 = True
+    voice.make_voice(script, tmp_path, render.duration)
+    assert models == ["eleven_v4", "eleven_multilingual_v2", "eleven_multilingual_v2"]
+
+
+def test_delivery_tags_stay_out_of_captions():
+    assert voice.strip_tags("[sighs] Fine. [pause] You win.") == "Fine. You win."
+    script = json.loads(json.dumps(SCRIPT))
+    script["scenes"][0]["narration"] = "[sighs] " + script["scenes"][0]["narration"]
+    checked = script_mod.validate(script, BOOK)
+    assert checked["scenes"][0]["voice_text"].startswith("[sighs]")
+    assert "[" not in checked["scenes"][0]["narration"]

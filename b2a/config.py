@@ -25,7 +25,11 @@ ELEVENLABS_VOICES = {
     "philosopher": os.environ.get("ELEVENLABS_VOICE_PHILOSOPHER", "JBFqnCBsd6RMkjVDRZzb"),
     "youth": os.environ.get("ELEVENLABS_VOICE_YOUTH", "TX3LPaxmHKxFdv7VOQHJ"),
 }
-ELEVENLABS_MODEL = os.environ.get("ELEVENLABS_MODEL", "eleven_multilingual_v2")
+# Eleven v4 acts out delivery tags like [sighs] and [pause]. If the account or
+# the endpoint refuses it, the fallback model reads the plain line instead.
+ELEVENLABS_MODEL = os.environ.get("ELEVENLABS_MODEL", "eleven_v4")
+ELEVENLABS_FALLBACK_MODEL = os.environ.get("ELEVENLABS_FALLBACK_MODEL", "eleven_multilingual_v2")
+ELEVENLABS_STABILITY = float(os.environ.get("ELEVENLABS_STABILITY", "0.4"))  # lower = more acting
 # Speakers of the free voice model for the same three roles.
 PIPER_SPEAKERS = {"narrator": None, "philosopher": 5, "youth": 19}
 PIPER_MODEL = os.environ.get("PIPER_MODEL", str(ROOT / "voices" / "en-us-libritts-high.onnx"))

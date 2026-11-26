@@ -95,6 +95,7 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     voice = next(iter(job.glob("voice.*")), None)
     if not (words and voice):
         voice, words, state["voice"] = voice_mod.make_voice(script, job, render.duration)
+        state["voice_model"] = voice_mod.used_model.get("name")
         _save(job / "words.json", words)
     _save(job / "state.json", state)
     total = render.duration(voice) + config.TAIL_SECONDS
@@ -127,7 +128,7 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
         "word_count": len(voice_mod.narration_text(script).split()),
         "scene_count": len(scenes),
         "sets": [s.get("stage", {}).get("set") for s in script["scenes"]],
-        "voice": ("elevenlabs:" + config.ELEVENLABS_VOICES["narrator"] if state["voice"] == "elevenlabs"
+        "voice": (f"elevenlabs:{state.get('voice_model') or config.ELEVENLABS_MODEL}" if state["voice"] == "elevenlabs"
                   else f"piper:{Path(config.PIPER_MODEL).stem}#{config.PIPER_SPEAKER}"),
         "speakers": sorted({voice_mod.speaker_of(s) for s in script["scenes"]}),
         "visuals": "blender",

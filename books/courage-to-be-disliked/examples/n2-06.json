@@ -12,7 +12,7 @@
  ],
  "scenes": [
   {
-   "narration": "I'm twenty-four and I'm already losing.",
+   "narration": "[sighs] I'm twenty-four and I'm already losing.",
    "speaker": "youth",
    "image": "The youth alone in his dark bedroom, slumping.",
    "stage": {
@@ -42,7 +42,7 @@
    }
   },
   {
-   "narration": "Losing what?",
+   "narration": "[curious] Losing what?",
    "speaker": "philosopher",
    "image": "The study. The philosopher looks up at him, amused.",
    "stage": {
@@ -93,7 +93,7 @@
    }
   },
   {
-   "narration": "Life! My friends have jobs. Houses. Abs.",
+   "narration": "[annoyed] Life! My friends have jobs. Houses. Abs.",
    "speaker": "youth",
    "image": "The youth counts it off with both hands, angry.",
    "stage": {
@@ -144,7 +144,7 @@
    }
   },
   {
-   "narration": "I see. And who fired the starting gun?",
+   "narration": "I see. [pause] And who fired the starting gun?",
    "speaker": "philosopher",
    "image": "Two-shot, the philosopher points his cane at him.",
    "stage": {
@@ -442,7 +442,7 @@
    }
   },
   {
-   "narration": "Behind whom? You are the only one on your road.",
+   "narration": "Behind whom? [pause] You are the only one on your road.",
    "speaker": "philosopher",
    "image": "Close on the philosopher, calm.",
    "stage": {
@@ -477,7 +477,7 @@
    }
   },
   {
-   "narration": "Great. So I just stop trying?",
+   "narration": "[deadpan] Great. So I just stop trying?",
    "speaker": "youth",
    "image": "The youth crosses his arms, sarcastic.",
    "stage": {
@@ -569,7 +569,7 @@
    }
   },
   {
-   "narration": "So tell me. Who are you still racing?",
+   "narration": "So tell me. [pause] Who are you still racing?",
    "speaker": "narrator",
    "image": "Sunrise: the youth walks off alone over the hill, happy.",
    "stage": {
