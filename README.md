@@ -98,31 +98,41 @@ mount a volume at `/data`.
 API: `GET /api/episodes?book=`, `POST /api/shorts {"book","episode"}` (an id
 or `"next"`; or `"topic"` and `"idea"` for a free topic), `GET /api/shorts`,
 `GET /api/shorts/{id}`, `GET /files/{id}/short.mp4`,
-`PATCH /api/shorts/{id}/feedback`.
+`PATCH /api/shorts/{id}/feedback`, and the Studio contract below.
 
-## Posting (Postiz)
+## Studio: one dashboard for every pipeline
 
-With `POSTIZ_URL` and `POSTIZ_API_KEY` set, every Short in the gallery gets a
-"Post with Postiz" panel: tick the channels (YouTube, TikTok, Instagram, ...),
-leave the time empty to post now or pick a time to schedule. The video is
-uploaded to Postiz and each platform gets fitting settings (`b2a/postiz.py`).
-Nothing is posted automatically. What was sent is kept in `meta.json` under
-`posts`. API: `GET /api/postiz/channels`,
-`POST /api/shorts/{id}/publish {"channels": [...], "when": "2026-12-01T18:00:00+01:00"}`.
+`studio/` is a second, small app (its own Docker image, `studio/Dockerfile`,
+no Blender inside). It is the one place to log in, review the videos of every
+pipeline and send them to Postiz. The pipelines stay separate apps and know
+nothing about Postiz.
 
-## One dashboard for every pipeline
+Each pipeline is a tab. A pipeline plugs in by offering a tiny contract
+(described in `studio/sources.py`) behind HTTP basic auth with its own
+password: `GET /api/items?status=`, the video file, and optionally
+`POST /api/items/{id}/status` and `POST /api/items/{id}/sent`. This app
+offers it for its Shorts; the stream clipper offers the same.
 
-The web app is also the shared dashboard ("Studio"): one login, a tab for our
-Shorts and one tab per other pipeline (for example the stream clipper), each
-with review buttons and "Post with Postiz". The pipelines stay separate apps.
+In Studio: Approve or Reject a pending video, then "Post with Postiz" on an
+approved one: tick the channels (YouTube, TikTok, Instagram, ...), leave the
+time empty to post now or pick a time to schedule. Studio downloads the video
+from the pipeline, uploads it to Postiz with fitting settings per platform
+(`studio/postiz.py`) and tells the pipeline what was sent (kept in `meta.json`
+under `posts`). Nothing is posted automatically.
 
-A pipeline plugs in by offering a tiny contract (described in
-`b2a/sources.py`): `GET /api/items?status=`, the video file, and optionally
-`POST /api/items/{id}/status` and `POST /api/items/{id}/sent`, behind HTTP
-basic auth. Then set `SOURCE_<NAME>_URL` and `SOURCE_<NAME>_PASSWORD` here
-(`SOURCE_CLIPS_URL=...` gives a "Clips" tab). The dashboard sends to Postiz
-itself, so a new pipeline needs no Postiz code. This app offers the same
-contract for its own Shorts at `GET /api/items`.
+Settings of the Studio app:
+
+| Variable | What |
+| --- | --- |
+| `STUDIO_PASSWORD` | Login password of the dashboard (any username) |
+| `POSTIZ_URL`, `POSTIZ_API_KEY` | Your Postiz server and its API key |
+| `SOURCE_SHORTS_URL`, `SOURCE_SHORTS_PASSWORD` | This app's address and its `APP_PASSWORD` |
+| `SOURCE_CLIPS_URL`, `SOURCE_CLIPS_PASSWORD` | The stream clipper's address and its `REVIEW_PASSWORD` |
+
+Any other pipeline: `SOURCE_<NAME>_URL` and `SOURCE_<NAME>_PASSWORD` give a
+tab called Name. Set `STUDIO_URL` on this app to show a link to Studio.
+
+Run it locally: `uvicorn studio.app:app --port 8001`.
 
 ## Feedback loop
 

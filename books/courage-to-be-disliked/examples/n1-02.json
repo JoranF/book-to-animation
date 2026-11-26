@@ -1,0 +1,689 @@
+{
+ "title": "You didn't lose your temper. You used it.",
+ "hook": "You didn't lose your temper. You used it.",
+ "hook_type": "contradiction",
+ "description": "He screams at a waiter, then answers his mom in the sweetest voice one second later. So was the anger ever out of control? An idea from Adlerian psychology, as explored in The Courage to Be Disliked.",
+ "hashtags": [
+  "#shorts",
+  "#philosophy",
+  "#psychology",
+  "#anger",
+  "#selfimprovement"
+ ],
+ "scenes": [
+  {
+   "narration": "You didn't lose your temper. [pause] You used it.",
+   "speaker": "narrator",
+   "image": "The youth, furious, arms crossed, in the town square.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       0,
+       0.4
+      ],
+      "action": "arms_crossed",
+      "mood": "angry"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "focus": "youth",
+     "dist": 3.0
+    }
+   }
+  },
+  {
+   "narration": "[annoyed] He spilled coffee on my jacket! Of course I yelled.",
+   "speaker": "youth",
+   "image": "The youth rants at the philosopher; a waiter slumps behind them.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "talk",
+      "mood": "angry"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "nod",
+      "mood": "calm"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       -2.4,
+       2.2
+      ],
+      "face": 40,
+      "action": "slump"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      0,
+      0.3,
+      0.9
+     ],
+     "dist": 4.4,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "[curious] So the anger just... exploded out of you?",
+   "speaker": "philosopher",
+   "image": "Close on the philosopher, eyebrows up.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "arms_crossed",
+      "mood": "angry"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "talk",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "focus": "philosopher",
+     "angle": -22
+    }
+   }
+  },
+  {
+   "narration": "Yes! I couldn't stop it.",
+   "speaker": "youth",
+   "image": "The youth shrugs wide.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "shrug",
+      "mood": "angry"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "idle",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "focus": "youth",
+     "angle": 22
+    }
+   }
+  },
+  {
+   "narration": "Now watch what happens when his phone rings.",
+   "speaker": "narrator",
+   "image": "A glowing phone flies in; the youth jumps.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     },
+     {
+      "type": "cube",
+      "color": "#39d0ff",
+      "pos": [
+       -3.5,
+       0.2,
+       3.2
+      ],
+      "to": [
+       -0.9,
+       0.1,
+       1.5
+      ],
+      "start": 0.1,
+      "span": 0.9
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "startle",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "look_around",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "target": [
+      0,
+      0.3,
+      0.9
+     ],
+     "dist": 4.8,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "[cheerfully] Hi mom! No, I'm great. Love you, bye!",
+   "speaker": "youth",
+   "image": "Mom's face floats above; the youth is all smiles.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     },
+     {
+      "type": "floating_head",
+      "who": "mom",
+      "pos": [
+       -0.2,
+       0.6,
+       2.9
+      ]
+     },
+     {
+      "type": "cube",
+      "color": "#39d0ff",
+      "pos": [
+       -0.25,
+       0.15,
+       1.35
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.3
+      ],
+      "face": 10,
+      "action": "talk",
+      "mood": "happy"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       1.1,
+       0.5
+      ],
+      "look_at": "youth",
+      "action": "idle",
+      "mood": "smirk"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      -0.3,
+      0.3,
+      1.5
+     ],
+     "dist": 4.4,
+     "height": 1.6
+    }
+   }
+  },
+  {
+   "narration": "[deadpan] Interesting. Where did the explosion go?",
+   "speaker": "philosopher",
+   "image": "Two-shot: the philosopher points his cane, the youth looks around.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "look_around",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "point",
+      "mood": "smirk"
+     }
+    ],
+    "camera": {
+     "move": "orbit",
+     "target": [
+      0,
+      0.3,
+      0.9
+     ],
+     "dist": 4.4,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "That's... different.",
+   "speaker": "youth",
+   "image": "Close on the youth, caught.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "facepalm",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "laugh",
+      "mood": "happy"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "focus": "youth",
+     "angle": 20
+    }
+   }
+  },
+  {
+   "narration": "You switched it off in one second. [pause] Because it's a tool.",
+   "speaker": "philosopher",
+   "image": "Close on the philosopher, calm.",
+   "stage": {
+    "set": "town",
+    "props": [
+     {
+      "type": "house",
+      "pos": [
+       -3.2,
+       6
+      ],
+      "color": "#d9785a",
+      "roof": "#7a3b2e"
+     },
+     {
+      "type": "tree",
+      "pos": [
+       3.2,
+       5
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.3
+      ],
+      "look_at": "philosopher",
+      "action": "slump",
+      "mood": "sad"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "talk",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "focus": "philosopher",
+     "angle": -20
+    }
+   }
+  },
+  {
+   "narration": "Anger was just the fastest way to make the waiter give in.",
+   "speaker": "narrator",
+   "image": "Replay: the youth towers over the small slumping waiter.",
+   "stage": {
+    "set": "workshop",
+    "props": [
+     {
+      "type": "desk",
+      "pos": [
+       1.6,
+       1.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.5,
+       0.4
+      ],
+      "face": 60,
+      "action": "point",
+      "mood": "angry"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       0.9,
+       0.6
+      ],
+      "face": -60,
+      "action": "slump"
+     }
+    ],
+    "camera": {
+     "move": "pull_back",
+     "target": [
+      0.2,
+      0.5,
+      0.9
+     ],
+     "dist": 4.2,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "Words would have worked too. They just take longer.",
+   "speaker": "philosopher",
+   "image": "The study by the fire, the youth listens.",
+   "stage": {
+    "set": "study",
+    "props": [
+     {
+      "type": "fireplace",
+      "pos": [
+       0.1,
+       4.15
+      ]
+     },
+     {
+      "type": "rug",
+      "pos": [
+       0,
+       0.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "nod",
+      "mood": "calm"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.4
+      ],
+      "look_at": "youth",
+      "action": "talk"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      0,
+      0.3,
+      0.9
+     ],
+     "dist": 4.2,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "So next time you lose it... [pause] ask what you're using it for.",
+   "speaker": "narrator",
+   "image": "Sunrise hill: the youth looks at his open hands, the philosopher points at the viewer.",
+   "stage": {
+    "set": "hill_sunrise",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       1.2,
+       0.97
+      ],
+      "face": 15,
+      "action": "reach",
+      "mood": "calm"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       1.2,
+       0.97
+      ],
+      "action": "point_viewer",
+      "mood": "happy"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      0,
+      1.2,
+      1.8
+     ],
+     "dist": 4.8,
+     "height": 2.1
+    }
+   }
+  }
+ ]
+}

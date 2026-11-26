@@ -2,24 +2,22 @@
 from __future__ import annotations
 
 import contextlib
-from datetime import datetime
 import html
 import json
 import os
 import queue
 import secrets
-import tempfile
 import threading
 import traceback
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, pipeline, plan as plan_mod, postiz, script as script_mod, sources
+from . import config, pipeline, plan as plan_mod, script as script_mod
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -71,8 +69,7 @@ def short_path(short_id: str, name: str) -> Path:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"ok": True, "claude_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY")),
-            "postiz_set": postiz.configured(), "sources": sources.names()}
+            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY"))}
 
 
 @app.post("/api/shorts", dependencies=[Depends(auth)])
@@ -142,110 +139,63 @@ def update_feedback(short_id: str, body: Feedback) -> dict[str, Any]:
     return meta
 
 
-class Publish(BaseModel):
-    channels: list[str] = Field(min_length=1, max_length=20)
-    when: datetime | None = None     # empty = post now
-    draft: bool = False
-
-
-@app.get("/api/postiz/channels", dependencies=[Depends(auth)])
-def postiz_channels() -> dict[str, Any]:
-    if not postiz.configured():
-        return {"configured": False, "channels": []}
-    try:
-        return {"configured": True, "channels": postiz.channels()}
-    except RuntimeError as exc:
-        raise HTTPException(502, str(exc)) from exc
-
-
-@app.post("/api/shorts/{short_id}/publish", dependencies=[Depends(auth)])
-def publish_short(short_id: str, body: Publish) -> dict[str, Any]:
-    """Send a finished Short to Postiz: post now, schedule, or save as draft."""
-    path = short_path(short_id, "meta.json")
-    video = short_path(short_id, "short.mp4")
-    if not (path.exists() and video.exists()):
-        raise HTTPException(404, "Unknown Short")
-    meta = json.loads(path.read_text())
-    try:
-        sent = postiz.publish(meta, video, body.channels, body.when, body.draft)
-    except RuntimeError as exc:
-        raise HTTPException(502, str(exc)) from exc
-    meta = json.loads(path.read_text())
-    meta.setdefault("posts", []).append(sent)
-    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
-    return sent
-
-
-# --- the shared contract (see sources.py): our own Shorts, and other pipelines ---
+# --- what a shared dashboard (see studio/) reads: the same small contract every pipeline offers ---
 
 class ItemStatus(BaseModel):
-    status: str
+    status: Literal["pending", "approved", "rejected"]
+
+
+class Sent(BaseModel):
+    """What the dashboard sent to Postiz for one Short."""
+    type: str = "now"                    # now | schedule | draft
+    date: str | None = None
+    channels: list[dict[str, Any]] = []
+    result: Any = None
+
+
+def caption(meta: dict[str, Any]) -> str:
+    lines = [meta.get("description") or meta.get("title") or "", " ".join(meta.get("hashtags") or [])]
+    if str(meta.get("voice", "")).startswith("piper"):
+        lines.append("Voice: LibriTTS (CC BY 4.0).")     # required credit for the free voice
+    return "\n\n".join(line for line in lines if line).strip()
+
+
+def item(meta: dict[str, Any]) -> dict[str, Any]:
+    return {"id": meta["id"], "title": meta["title"], "caption": caption(meta), "hashtags": [],
+            "seconds": meta.get("duration_seconds"), "status": meta.get("review", "pending"),
+            "video": f"/files/{meta['id']}/short.mp4",
+            "label": " ".join(str(x) for x in (meta.get("episode"), meta.get("format")) if x) or meta.get("topic"),
+            "error": None, "posted": meta.get("posts")}
+
+
+def _meta(short_id: str) -> tuple[Path, dict[str, Any]]:
+    path = short_path(short_id, "meta.json")
+    if not path.exists():
+        raise HTTPException(404, "Unknown Short")
+    return path, json.loads(path.read_text())
 
 
 @app.get("/api/items", dependencies=[Depends(auth)])
-def own_items(status: str = "approved") -> dict[str, Any]:
-    """Our Shorts in the shape every pipeline offers, so a dashboard can read them."""
-    out = []
-    for m in pipeline.list_shorts():
-        state = "posted" if m.get("posts") else "approved"
-        if state == status:
-            out.append({"id": m["id"], "title": m["title"], "caption": postiz.caption(m),
-                        "hashtags": m.get("hashtags") or [], "seconds": m.get("duration_seconds"),
-                        "status": state, "video": f"/files/{m['id']}/short.mp4",
-                        "label": m.get("episode") or m.get("topic"), "posted": m.get("posts"), "error": None})
-    return {"items": out}
+def api_items(status: Literal["pending", "approved", "posted", "rejected"] = "approved") -> dict[str, Any]:
+    return {"items": [item(m) for m in pipeline.list_shorts() if m.get("review", "pending") == status]}
 
 
-@app.get("/api/sources", dependencies=[Depends(auth)])
-def get_sources() -> dict[str, Any]:
-    return {"sources": sources.names()}
+@app.post("/api/items/{short_id}/status", dependencies=[Depends(auth)])
+def api_set_status(short_id: str, body: ItemStatus) -> dict[str, Any]:
+    path, meta = _meta(short_id)
+    meta["review"] = body.status
+    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+    return {"ok": True, "item": item(meta)}
 
 
-@app.get("/api/sources/{name}/items", dependencies=[Depends(auth)])
-def source_items(name: str, status: str = "approved") -> dict[str, Any]:
-    try:
-        return {"items": sources.items(name, status if status in sources.STATUSES else "approved")}
-    except RuntimeError as exc:
-        return {"items": [], "error": str(exc)}
-
-
-@app.post("/api/sources/{name}/items/{item_id}/status", dependencies=[Depends(auth)])
-def source_status(name: str, item_id: str, body: ItemStatus) -> dict[str, Any]:
-    try:
-        sources.set_status(name, item_id, body.status)
-    except RuntimeError as exc:
-        raise HTTPException(502, str(exc)) from exc
-    return {"ok": True}
-
-
-@app.post("/api/sources/{name}/items/{item_id}/publish", dependencies=[Depends(auth)])
-def source_publish(name: str, item_id: str, body: Publish) -> dict[str, Any]:
-    """Fetch the video from the pipeline, send it to Postiz, tell the pipeline."""
-    try:
-        found = sources.item(name, item_id)
-        with tempfile.TemporaryDirectory() as tmp:
-            video = sources.download(name, found["video"], Path(tmp) / f"{name}-{Path(str(item_id)).name}.mp4")
-            meta = {"title": found.get("title"), "description": found.get("caption"),
-                    "hashtags": ["#" + str(t).lstrip("#") for t in found.get("hashtags") or []]}
-            sent = postiz.publish(meta, video, body.channels, body.when, body.draft)
-    except RuntimeError as exc:
-        raise HTTPException(502, str(exc)) from exc
-    sent["recorded_by_source"] = sources.mark_sent(name, item_id, sent)
-    return sent
-
-
-@app.get("/sources/{name}/video/{item_id}", dependencies=[Depends(auth)])
-def source_video(name: str, item_id: str, request: Request) -> StreamingResponse:
-    try:
-        upstream = sources.video(name, sources.item(name, item_id)["video"], request.headers.get("range"))
-    except RuntimeError as exc:
-        raise HTTPException(502, str(exc)) from exc
-    if upstream.status_code >= 400:
-        upstream.close()
-        raise HTTPException(404)
-    keep = {k: v for k, v in upstream.headers.items()
-            if k.lower() in ("content-length", "content-range", "accept-ranges", "content-type")}
-    return StreamingResponse(upstream.iter_content(1 << 16), status_code=upstream.status_code, headers=keep)
+@app.post("/api/items/{short_id}/sent", dependencies=[Depends(auth)])
+def api_sent(short_id: str, body: Sent) -> dict[str, Any]:
+    """The dashboard reports what it sent to Postiz; kept with the Short for the feedback loop."""
+    path, meta = _meta(short_id)
+    meta.setdefault("posts", []).append(body.model_dump())
+    meta["review"] = "posted"
+    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+    return {"ok": True, "item": item(meta)}
 
 
 @app.get("/files/{short_id}/{name}", dependencies=[Depends(auth)])
@@ -257,32 +207,21 @@ def get_file(short_id: str, name: str) -> FileResponse:
 
 
 PAGE = """<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>Studio: Shorts and clips</title>
+<title>book-to-animation</title>
 <style>body{font:16px system-ui;margin:0 auto;max-width:980px;padding:16px;background:#14121f;color:#eee}
 input,select,textarea,button{font:inherit;padding:8px;border-radius:6px;border:1px solid #555;background:#221f33;color:#eee;width:100%;box-sizing:border-box;margin:4px 0}
 button{background:#ffe500;color:#111;font-weight:700;cursor:pointer}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
-.tabs a{display:inline-block;padding:6px 14px;border-radius:6px;background:#221f33;color:#eee;text-decoration:none;margin-right:6px}
-.tabs a.on{background:#ffe500;color:#111;font-weight:700}
 video{width:100%;border-radius:8px;background:#000}small{color:#aaa}.job{padding:8px;background:#221f33;border-radius:6px;margin:6px 0}</style>
-<h1>Studio</h1>
-<p class=tabs id=tabs><a href="#shorts">Shorts</a></p>
-<div id=p-clips hidden><p class=tabs id=cstat></p><div id=cnote class=job hidden></div><div class=grid id=clips></div></div>
-<div id=p-shorts>
+<h1>book-to-animation</h1>__STUDIO__
 <form onsubmit="go(event)"><select name=book>__BOOKS__</select>
 <select name=episode id=episode onchange="pick()"></select><div id=angle class=job hidden></div>
 <div id=own hidden><input name=topic placeholder="Your own topic">
 <textarea name=idea placeholder="Optional idea or angle"></textarea></div><button>Make Short</button></form>
-<div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div></div>
+<div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div>
 <script>
 const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts'),epEl=document.getElementById('episode');
-let eps={},madeKey='',chans=[];
-fetch('/api/postiz/channels').then(r=>r.ok?r.json():{channels:[]}).then(d=>{chans=d.channels;shortsEl.dataset.h='';load()});
-async function post(e,id){e.preventDefault();const f=new FormData(e.target),msg=e.target.querySelector('.msg'),when=f.get('when');
-const channels=f.getAll('c');if(!channels.length){msg.textContent=' Choose a channel';return}
-if(!confirm((when?'Schedule':'Post NOW')+' on '+channels.length+' channel(s)?'))return;msg.textContent=' Sending...';
-const r=await fetch('/api/shorts/'+id+'/publish',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({channels,when:when?new Date(when).toISOString():null})});
-msg.textContent=r.ok?' Sent to Postiz':' Failed: '+((await r.json()).detail||r.status);if(r.ok){shortsEl.dataset.h='';load()}}
+let eps={},madeKey='';
 function pick(){const e=eps[epEl.value],a=document.getElementById('angle');document.getElementById('own').hidden=epEl.value!=='';
 a.hidden=!e;if(e)a.innerHTML=`<b>${esc(e.hook)}</b><br><small>${esc(e.format)}: ${esc(e.angle)}</small>`}
 async function plan(){const book=document.querySelector('[name=book]').value;
@@ -299,41 +238,16 @@ const esc0=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function load(){const d=await (await fetch('/api/shorts')).json();
 jobsEl.innerHTML=d.jobs.map(j=>`<div class=job>${esc(j.topic)}: <b>${esc(j.status)}</b> (${esc(j.step)}) ${esc(j.error)}</div>`).join('');
 const html=d.shorts.map(s=>`<div><video controls preload=none poster="/files/${esc(s.id)}/thumb.jpg" src="/files/${esc(s.id)}/short.mp4"></video>
-<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}</small>
-${(s.posts||[]).map(p=>`<br><small>${esc(p.type)} ${esc(p.date.slice(0,16).replace('T',' '))} UTC: ${esc(p.channels.map(c=>c.platform).join(', '))}</small>`).join('')}
-${chans.length?`<details><summary>Post with Postiz</summary><form onsubmit="post(event,'${esc(s.id)}')">`+chans.map(c=>`<label><input type=checkbox name=c value="${esc(c.id)}" style="width:auto"> ${esc(c.platform)}: ${esc(c.name)}</label><br>`).join('')+
-`<input type=datetime-local name=when title="Leave empty to post now"><button>Post or schedule</button><small class=msg></small></form></details>`:''}</div>`).join('');
-if(shortsEl.dataset.h!==html&&!shortsEl.querySelector('details[open]')){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
-const clipsEl=document.getElementById('clips'),cnote=document.getElementById('cnote');let cstatus='approved',srcs=[];
-const src=()=>srcs.includes(location.hash.slice(1))?location.hash.slice(1):'';
-function tab(){const n=src();document.getElementById('p-clips').hidden=!n;document.getElementById('p-shorts').hidden=!!n;
-document.getElementById('tabs').innerHTML=['shorts',...srcs].map(t=>`<a href="#${t}" class="${t===(n||'shorts')?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('');
-clipsEl.dataset.h='';clipsEl.innerHTML='';if(n)loadClips()}
-function showStatus(s){cstatus=s;clipsEl.dataset.h='';loadClips()}
-async function loadClips(){const n=src();if(!n)return;document.getElementById('cstat').innerHTML=['pending','approved','posted','rejected'].map(s=>
-`<a href="#${n}" class="${s===cstatus?'on':''}" onclick="showStatus('${s}')">${s==='posted'?'sent':s}</a>`).join('');
-const d=await (await fetch('/api/sources/'+n+'/items?status='+cstatus)).json();if(n!==src())return;
-const note=d.error||(d.items.length?'':'No '+cstatus+' videos.');cnote.hidden=!note;cnote.textContent=note;
-const html=d.items.map(c=>{const id=encodeURIComponent(c.id);return `<div><video controls preload=none src="/sources/${n}/video/${id}"></video><b>${esc(c.title)}</b><br>
-<small>${esc(c.label)}${c.seconds?', '+Math.round(c.seconds)+'s':''}</small><br><small>${esc(c.caption)} ${esc((c.hashtags||[]).map(t=>'#'+String(t).replace(/^#/,'')).join(' '))}</small>
-${c.error?`<br><small>Not sent: ${esc(c.error)}</small>`:''}
-<div>${[['approved','Approve'],['rejected','Reject'],['pending','Back to pending']].filter(x=>x[0]!==c.status&&c.status!=='posted').map(x=>
-`<button style="width:auto;margin-right:4px" onclick="clipStatus('${id}','${x[0]}')">${x[1]}</button>`).join('')}</div>
-${c.status==='approved'&&chans.length?`<details><summary>Post with Postiz</summary><form onsubmit="postClip(event,'${id}')">`+chans.map(h=>`<label><input type=checkbox name=c value="${esc(h.id)}" style="width:auto"> ${esc(h.platform)}: ${esc(h.name)}</label><br>`).join('')+
-`<input type=datetime-local name=when title="Leave empty to post now"><button>Post or schedule</button><small class=msg></small></form></details>`:''}</div>`}).join('');
-if(clipsEl.dataset.h!==html&&!clipsEl.querySelector('details[open]')){clipsEl.innerHTML=html;clipsEl.dataset.h=html}}
-async function clipStatus(id,status){await fetch('/api/sources/'+src()+'/items/'+id+'/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({status})});clipsEl.dataset.h='';loadClips()}
-async function postClip(e,id){e.preventDefault();const f=new FormData(e.target),msg=e.target.querySelector('.msg'),when=f.get('when'),channels=f.getAll('c');
-if(!channels.length){msg.textContent=' Choose a channel';return}
-if(!confirm((when?'Schedule':'Post NOW')+' on '+channels.length+' channel(s)?'))return;msg.textContent=' Sending...';
-const r=await fetch('/api/sources/'+src()+'/items/'+id+'/publish',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({channels,when:when?new Date(when).toISOString():null})});
-if(r.ok){e.target.closest('details').open=false;clipsEl.dataset.h='';loadClips()}else msg.textContent=' Failed: '+((await r.json()).detail||r.status)}
-window.onhashchange=tab;fetch('/api/sources').then(r=>r.json()).then(d=>{srcs=d.sources;tab()});
-plan();load();setInterval(()=>{load();plan();loadClips()},5000)</script>"""
+<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}, ${esc(s.review||'pending')}</small></div>`).join('');
+if(shortsEl.dataset.h!==html){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
+plan();load();setInterval(()=>{load();plan()},5000)</script>"""
 
 
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(auth)])
 def index() -> str:
     books = [script_mod.load_book(p.parent.name) for p in sorted(config.BOOKS_DIR.glob("*/book.json"))]
     options = "".join(f'<option value="{html.escape(b["slug"])}">{html.escape(b["title"])}</option>' for b in books)
-    return PAGE.replace("__BOOKS__", options)
+    studio = os.environ.get("STUDIO_URL", "")
+    link = (f'<p><a style="color:#ffe500" href="{html.escape(studio)}">Review and post in Studio</a></p>'
+            if studio.startswith("https://") else "")
+    return PAGE.replace("__BOOKS__", options).replace("__STUDIO__", link)
