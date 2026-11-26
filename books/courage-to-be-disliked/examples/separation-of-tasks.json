@@ -1,0 +1,63 @@
+{
+  "title": "Stop doing other people's homework",
+  "hook": "You're exhausted because you keep doing homework that isn't yours.",
+  "hook_type": "you_statement",
+  "description": "Most of your stress is not even yours. An idea from Adlerian psychology, as explained in The Courage to Be Disliked: separate your tasks from other people's tasks.",
+  "hashtags": ["#shorts", "#philosophy", "#psychology", "#selfimprovement", "#adler"],
+  "scenes": [
+    {
+      "narration": "You're exhausted because you keep doing homework that isn't yours.",
+      "image": "The youth sits slumped at a tiny wooden school desk, completely buried under absurdly tall wobbling towers of blank paper and books, eyes half closed, in a small blocky bedroom at night lit by a desk lamp.",
+      "motion": "The paper towers wobble and a few sheets fall while the youth's head slowly drops onto the desk. Slow camera push in.",
+      "characters": ["youth"]
+    },
+    {
+      "narration": "Your mom's disappointment. Your boss's mood. What strangers think of your haircut.",
+      "image": "The youth walks hunched forward through a blocky town square carrying a ridiculously huge overstuffed green backpack, three big floating low-poly heads hover above him looking down at him: a frowning mother, an angry boss with a tie, and a smirking stranger.",
+      "motion": "The youth trudges forward under the heavy backpack while the three floating heads bob up and down and shake disapprovingly. Camera tracks sideways with him.",
+      "characters": ["youth"]
+    },
+    {
+      "narration": "An old idea from psychology says: stop. Ask one question.",
+      "image": "The philosopher stands in a cozy low-poly study full of bookshelves and a fireplace, raising one open hand toward the viewer in a calm stop gesture, a small knowing smile.",
+      "motion": "The philosopher raises his hand in a stop gesture and nods once, fire flickers behind him. Slow camera push in on him.",
+      "characters": ["philosopher"]
+    },
+    {
+      "narration": "Who has to live with the result of this choice?",
+      "image": "Seen from behind, the youth stands at a fork in a checkered path on a floating grassy island under a bright blue sky, the two paths lead to two different glowing doors, the philosopher stands beside him pointing at the fork with his cane.",
+      "motion": "The philosopher points his cane from one door to the other, the doors glow and pulse softly, the youth looks left and right. Camera slowly rises.",
+      "characters": ["philosopher", "youth"]
+    },
+    {
+      "narration": "If it's you, it's your task. If it's them, it's theirs.",
+      "image": "On a grassy checkered field, the youth holds one glowing blue cube close to his chest with a relieved face, and hands a glowing orange cube over to a faceless grey low-poly figure who reaches out to take it.",
+      "motion": "The youth hands the orange cube to the grey figure and hugs the blue cube, both cubes glow and slowly rotate. Gentle camera orbit.",
+      "characters": ["youth"]
+    },
+    {
+      "narration": "You pick the job you love. Whether your dad approves? That's his task.",
+      "image": "The youth happily paints a colorful canvas on an easel in a bright blocky workshop, in the background a stern low-poly father in a grey suit stands with crossed arms next to an office briefcase.",
+      "motion": "The youth paints with big cheerful brush strokes, the father in the background taps his foot and shakes his head. Slow camera push in on the youth.",
+      "characters": ["youth"]
+    },
+    {
+      "narration": "You can't control what people think of you. You can only control what you do.",
+      "image": "The youth walks calmly and upright along a checkered street, looking straight ahead with a small smile, passing a crowd of grey low-poly figures who whisper to each other and point at him.",
+      "motion": "The youth walks forward confidently toward the camera while the grey crowd whispers and points, he does not look at them. Camera moves backward in front of him.",
+      "characters": ["youth"]
+    },
+    {
+      "narration": "It sounds cold. It's actually freedom.",
+      "image": "On top of a green low-poly hill at sunrise the youth stands with both arms stretched wide open and a big smile, the huge green backpack lies dropped on the grass behind him, the philosopher stands next to him smiling, orange and pink sky.",
+      "motion": "The youth lifts his arms up toward the rising sun and takes a deep breath, the philosopher nods, clouds drift. Slow camera pull back revealing the landscape.",
+      "characters": ["philosopher", "youth"]
+    },
+    {
+      "narration": "So, whose task have you been carrying today?",
+      "image": "Close-up of the philosopher in his cozy study pointing one finger directly at the viewer with a warm curious smile, one eyebrow raised, the huge green backpack sits on the floor beside him.",
+      "motion": "The philosopher leans toward the camera, points at the viewer and raises an eyebrow. Slow camera push in on his face.",
+      "characters": ["philosopher"]
+    }
+  ]
+}

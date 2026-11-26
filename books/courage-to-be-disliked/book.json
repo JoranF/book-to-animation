@@ -1,0 +1,28 @@
+{
+  "slug": "courage-to-be-disliked",
+  "title": "The Courage to Be Disliked",
+  "authors": "Ichiro Kishimi & Fumitake Koga",
+  "school": "Adlerian psychology",
+  "summary": "A dialogue between a philosopher and a frustrated young man about Adlerian psychology: we are not determined by our past, all problems are interpersonal relationship problems, we should separate our tasks from other people's tasks, drop the need for recognition, and find happiness through contribution to others, here and now.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "topics": [
+    "Separation of tasks",
+    "All problems are interpersonal relationship problems",
+    "Trauma does not exist: we choose our goals",
+    "The desire for recognition is a trap",
+    "Life is not a competition",
+    "Do not praise, do not scold: encouragement",
+    "Freedom is being disliked by other people",
+    "Happiness is the feeling of contribution",
+    "Live in the here and now"
+  ]
+}
