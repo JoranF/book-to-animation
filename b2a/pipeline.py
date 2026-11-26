@@ -34,12 +34,12 @@ def new_id(topic: str) -> str:
     return f"{datetime.now(timezone.utc):%Y%m%d-%H%M%S}-{_slug(topic)}-{uuid.uuid4().hex[:4]}"
 
 
-def estimate_cost(script: dict[str, Any], clip_seconds: float, made_music: bool) -> float:
+def estimate_cost(script: dict[str, Any], wrote_script: bool, voice_backend: str) -> float:
+    """Pictures and music are made on our own server, so only fal calls cost money."""
     p = config.PRICES
     chars = len(voice_mod.narration_text(script))
-    cost = (p["llm_script"] + chars / 1000 * p["tts_per_1k_chars"]
-            + len(script["scenes"]) * p["image"] + clip_seconds * p["video_per_second"]
-            + (p["music"] if made_music else 0))
+    cost = (p["llm_script"] if wrote_script else 0.0)
+    cost += chars / 1000 * p["tts_per_1k_chars"] if voice_backend == "fal" else 0.0
     return round(cost, 2)
 
 
@@ -54,8 +54,13 @@ def make_short(book_slug: str, topic: str, idea: str = "", short_id: str | None 
 
     progress("script")
     script = script or _load(job / "script.json")
+    state = _load(job / "state.json") or {"wrote_script": False, "voice": None}
+    example = config.BOOKS_DIR / book_slug / "examples" / f"{_slug(topic)}.json"
+    if script is None and example.exists() and not idea:
+        script = _load(example)     # hand-checked script for this exact topic
     if script is None:
         script = script_mod.write_script(book, topic, idea, script_mod.load_learnings())
+        state["wrote_script"] = True
     script = script_mod.validate(script, book)
     _save(job / "script.json", script)
 
@@ -63,21 +68,20 @@ def make_short(book_slug: str, topic: str, idea: str = "", short_id: str | None 
     words = _load(job / "words.json")
     voice = next(iter(job.glob("voice.*")), None)
     if not (words and voice):
-        voice, words = voice_mod.make_voice(script, job, render.duration)
+        voice, words, state["voice"] = voice_mod.make_voice(script, job, render.duration)
         _save(job / "words.json", words)
+    _save(job / "state.json", state)
     total = render.duration(voice) + config.TAIL_SECONDS
     times = voice_mod.scene_times(script, words, total)
 
     progress("visuals")
-    scenes = visuals.make_visuals(book, script, times, job)
-    had_music = (job / "music.mp3").exists()
-    music = visuals.make_music(job)
+    scenes = visuals.make_visuals(script, times, job)
+    music = visuals.make_music(job, total, short_id)
 
     progress("render")
     video = render.render(scenes, times, voice, words, music, job / "work", job / "short.mp4")
     render.thumbnail(video, job / "thumb.jpg")
 
-    clip_seconds = sum(t[1] - t[0] for s, t in zip(scenes, times) if s.get("clip"))
     meta = {
         "id": short_id,
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -93,14 +97,14 @@ def make_short(book_slug: str, topic: str, idea: str = "", short_id: str | None 
         "duration_seconds": round(total, 1),
         "word_count": len(voice_mod.narration_text(script).split()),
         "scene_count": len(scenes),
-        "animated_scenes": sum(1 for s in scenes if s.get("clip")),
-        "voice": config.TTS_VOICE,
-        "models": {"script": config.SCRIPT_MODEL, "tts": config.TTS_MODEL,
-                   "image": config.IMAGE_EDIT_MODEL, "video": config.VIDEO_MODEL,
-                   "music": config.MUSIC_MODEL},
-        "estimated_cost_usd": estimate_cost(
-            script, clip_seconds,
-            made_music=bool(music) and music.parent == job and not had_music),
+        "sets": [s.get("stage", {}).get("set") for s in script["scenes"]],
+        "voice": {"elevenlabs": "elevenlabs:" + config.ELEVENLABS_VOICES["narrator"],
+                  "fal": f"elevenlabs-via-fal:{config.TTS_VOICE}"}.get(
+                      state["voice"], f"piper:{Path(config.PIPER_MODEL).stem}#{config.PIPER_SPEAKER}"),
+        "speakers": sorted({voice_mod.speaker_of(s) for s in script["scenes"]}),
+        "visuals": "blender",
+        "script_model": config.SCRIPT_MODEL if state["wrote_script"] else "manual",
+        "estimated_cost_usd": estimate_cost(script, state["wrote_script"], state["voice"] or "piper"),
         "render_seconds": round(time.time() - started),
         "files": {"video": "short.mp4", "thumbnail": "thumb.jpg", "script": "script.json"},
         # Filled in later by the upload + analytics steps (feedback loop).

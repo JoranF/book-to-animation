@@ -32,7 +32,7 @@ def duration(path: Path) -> float:
 
 # --- scenes ----------------------------------------------------------------
 
-FILL = f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}"
+FILL = f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=neighbor,crop={W}:{H}"
 
 
 def scene_from_clip(clip: Path, seconds: float, dest: Path) -> None:

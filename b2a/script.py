@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import config, fal
+from . import config, fal, stage as stage_mod
 
 SYSTEM = """You write scripts for a YouTube Shorts channel that explains ideas \
 from philosophy and psychology books as short animated stories.
@@ -26,20 +26,20 @@ curiosity, no greeting, no "did you know".
 Visuals: a late-90s low-poly 3D game world with two recurring characters:
 {characters}
 Each scene needs:
-- "image": one clear, simple picture (who, doing what, where, mood). Visual \
-metaphors work well. No text or signs in the picture. Mention characters by \
-their key (e.g. "the youth").
-- "motion": one sentence describing small movement for a 5 second animation \
-(character action plus a slow camera move).
-- "characters": which recurring characters appear (may be empty).
+- "speaker": "narrator" for almost every scene. At most two scenes may be a \
+short line spoken by "philosopher" or "youth" themselves when that makes it \
+livelier; that character must then be in the scene.
+- "image": one sentence describing the picture for a human reader.
+- "stage": the 3D scene, built as described below.
+
+{guide}
 
 Return ONLY JSON:
 {{"title": "YouTube title under 60 chars", "hook": "the first sentence", \
 "hook_type": "question|bold_claim|contradiction|story|you_statement", \
 "description": "2 sentence YouTube description, may name the book", \
 "hashtags": ["#shorts", "..."], \
-"scenes": [{{"narration": "...", "image": "...", "motion": "...", \
-"characters": ["youth"]}}]}}"""
+"scenes": [{{"narration": "...", "speaker": "narrator", "image": "...", "stage": {{...}}}}]}}"""
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -53,13 +53,15 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
     scenes = script.get("scenes") or []
     if not 5 <= len(scenes) <= 12:
         raise ValueError(f"Expected 5-12 scenes, got {len(scenes)}")
-    known = set(book["characters"])
-    for scene in scenes:
-        for field in ("narration", "image"):
-            if not str(scene.get(field, "")).strip():
-                raise ValueError(f"A scene is missing '{field}'")
-        scene.setdefault("motion", "Slow camera push in, gentle idle movement.")
-        scene["characters"] = [c for c in scene.get("characters", []) if c in known]
+    for number, scene in enumerate(scenes, 1):
+        if not str(scene.get("narration", "")).strip():
+            raise ValueError(f"Scene {number} is missing 'narration'")
+        if scene.get("speaker") not in config.SPEAKERS:
+            scene["speaker"] = "narrator"
+        try:
+            scene["stage"] = stage_mod.validate(scene.get("stage") or dict(stage_mod.DEFAULT))
+        except ValueError as exc:
+            raise ValueError(f"Scene {number} stage: {exc}") from exc
     words = sum(len(s["narration"].split()) for s in scenes)
     if not 60 <= words <= 160:
         raise ValueError(f"Narration has {words} words, expected 60-160")
@@ -89,13 +91,13 @@ def write_script(book: dict[str, Any], topic: str, idea: str = "",
             f"(use it):\n{learnings}\n"
         )
     messages = [
-        {"role": "system", "content": SYSTEM.format(characters=characters)},
+        {"role": "system", "content": SYSTEM.format(characters=characters, guide=stage_mod.GUIDE)},
         {"role": "user", "content": user},
     ]
     error: Exception | None = None
     for _ in range(3):
         try:
-            return validate(_extract_json(fal.chat(config.SCRIPT_MODEL, messages)), book)
+            return validate(_extract_json(fal.chat(config.SCRIPT_MODEL, messages, max_tokens=8000)), book)
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
             error = exc
             messages.append({"role": "user", "content": f"Invalid: {exc}. Return the corrected JSON only."})
