@@ -6,13 +6,16 @@ shapes and movements live in world.py.
 """
 from __future__ import annotations
 
+import math
 from typing import Any
 
 SETS = ["bedroom_night", "study", "workshop", "town", "field", "island", "hill_sunrise"]
 WHO = ["youth", "philosopher", "father", "grey"]
 MOODS = ["happy", "calm", "worried", "sad", "angry", "tired", "smirk", "plain"]
 ACTIONS = ["idle", "walk", "trudge", "slump", "stop", "point", "point_viewer", "look_around",
-           "give", "reach", "paint", "arms_crossed", "whisper", "arms_up", "nod"]
+           "give", "reach", "paint", "arms_crossed", "whisper", "arms_up", "nod",
+           "talk", "shrug", "shake_head", "facepalm", "startle", "laugh"]
+HEIGHTS = {"youth": 1.6, "philosopher": 1.2, "father": 1.7, "grey": 1.6}
 PROPS = ["desk", "paper_tower", "falling_paper", "lamp", "floating_head", "bookshelf", "fireplace",
          "door", "path", "cube", "easel", "briefcase", "big_backpack", "tree", "house", "cloud",
          "sun", "hill", "island", "bed", "window", "rug", "chair"]
@@ -52,7 +55,11 @@ ACTION, one of: "idle", "walk", "trudge" (bent under a load), "slump" (collapses
 forward), "stop" (raises a hand), "point" (optional "sweep": degrees), "point_viewer",
 "look_around", "give" ("side": 0 left arm, 1 right arm), "reach" (both arms forward),
 "paint", "arms_crossed" (shakes head, taps foot), "whisper" ("lean": 1 or -1),
-"arms_up" (relief, joy), "nod".
+"arms_up" (relief, joy), "nod", "talk" (explains with both hands), "shrug",
+"shake_head", "facepalm", "startle" (jumps in surprise), "laugh".
+- optional "look_at": "youth"|"philosopher"|"father" or [x, y]: turns the actor
+  toward that person or point (use it instead of "face" when two people talk).
+- The actor who speaks the scene's line gets a moving mouth automatically.
 
 PROP: {"type": TYPE, "pos": [x, y] or [x, y, z], ...}. TYPE, one of:
 - "desk"; "lamp" (on a desk: same pos); "bed"; "chair"; "rug"; "window" (pos [x, y, z] on the back wall y 4.38)
@@ -71,14 +78,21 @@ CAMERA: {"move": "static"|"push_in"|"pull_back"|"orbit"|"rise"|"track",
   Wide shot: dist 6, target z 1.2. Close-up of a face: dist 2.6.
 - A lower target z moves the subject up in the frame; captions cover the lower third.
 - "track" also needs "track": [dx, dy, dz], how far the target moves during the scene.
+- optional "focus": "youth"|"philosopher"|"father" aims at that actor's face (then
+  leave "target" out). Use it for dialogue: dist 2.3 and "angle" 25 or -25 on the
+  one who speaks, then cut to the other one with the opposite angle for the answer.
 
 Example: {"set": "town", "props": [{"type": "floating_head", "who": "boss", "pos": [-1, 0.2, 3.3],
 "follow": 0.42}], "actors": [{"who": "youth", "pos": [-1.1, 0], "to": [1.0, 0], "face": 90,
 "action": "trudge", "carry": "big_backpack"}], "camera": {"move": "track", "target": [-1, 0, 1.6],
 "track": [2.1, 0, 0], "dist": 6.2, "height": 1.7}}
 
-Make every scene look different from the one before (other set, framing or action) and show
-the idea as a visual metaphor, not just two people talking."""
+Conversation scenes: put both actors in the scene with "look_at" each other, the
+speaker with "talk", "point", "stop" or "shrug", the listener with a REACTION
+("startle", "facepalm", "shake_head", "arms_crossed", "laugh", "nod", "slump"). Cut
+between a two-shot and close-ups on the speaker ("focus"); never use the same
+framing twice in a row. In between, show the idea as a visual metaphor with props
+(a narrator or a character can speak over it). Change the set at least twice."""
 
 
 def _vec(value: Any, sizes: tuple[int, ...], what: str) -> None:
@@ -86,6 +100,17 @@ def _vec(value: Any, sizes: tuple[int, ...], what: str) -> None:
         isinstance(v, (int, float)) and not isinstance(v, bool) for v in value)
     if not ok:
         raise ValueError(f"{what} must be a list of {' or '.join(map(str, sizes))} numbers")
+
+
+def _where(ref: Any, actors: list[dict[str, Any]], what: str) -> list[float]:
+    """A point given as [x, y] or as the name of an actor in the scene."""
+    if isinstance(ref, str):
+        for other in actors:
+            if other.get("who") == ref and isinstance(other.get("pos"), (list, tuple)):
+                return list(other["pos"])
+        raise ValueError(f"{what}: there is no '{ref}' in this scene")
+    _vec(ref, (2, 3), what)
+    return list(ref)
 
 
 def validate(stage: Any) -> dict[str, Any]:
@@ -119,11 +144,25 @@ def validate(stage: Any) -> dict[str, Any]:
         if actor.get("mood") is not None and actor["mood"] not in MOODS:
             raise ValueError(f"unknown mood '{actor['mood']}', choose from {MOODS}")
         _vec(actor.setdefault("pos", [0, 0]), (2, 3), "actor.pos")
+        if "look_at" in actor:
+            point = _where(actor["look_at"], actors, "actor.look_at")
+            dx, dy = point[0] - actor["pos"][0], point[1] - actor["pos"][1]
+            if abs(dx) + abs(dy) > 0.05:
+                angle = math.degrees(math.atan2(dx, -dy))
+                # stay three-quarter to the camera so the face remains readable
+                actor["face"] = round(angle * 0.72 if abs(angle) <= 90 else angle)
         if "to" in actor:
             _vec(actor["to"], (2, 3), "actor.to")
         if actor.get("carry") not in (None, "big_backpack"):
             raise ValueError("actor.carry can only be 'big_backpack'")
     camera = stage.setdefault("camera", {})
+    if "focus" in camera and "target" not in camera:
+        who = camera["focus"]
+        point = _where(who, actors, "camera.focus")
+        base = point[2] if len(point) > 2 else 0.0
+        camera["target"] = [point[0], point[1], round(base + HEIGHTS.get(who, 1.6) * 0.72, 2)]
+        camera.setdefault("dist", 2.3)
+        camera.setdefault("height", camera["target"][2] + 0.25)
     if camera.setdefault("move", "push_in") not in CAMERA_MOVES:
         raise ValueError(f"unknown camera move '{camera['move']}', choose from {CAMERA_MOVES}")
     for key, sizes in (("target", (3,)), ("track", (3,))):

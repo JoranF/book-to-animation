@@ -1,14 +1,14 @@
-"""Offline tests: no fal calls. Rendering uses generated placeholder media."""
+"""Offline tests: no paid calls. Rendering uses generated placeholder media."""
 import json
 import subprocess
 from pathlib import Path
 
 import pytest
 
-from b2a import config, pipeline, render, script as script_mod, voice
+from b2a import config, llm, pipeline, plan, render, script as script_mod, voice
 
 BOOK = script_mod.load_book("courage-to-be-disliked")
-SCRIPT = json.loads((config.BOOKS_DIR / "courage-to-be-disliked" / "examples" / "separation-of-tasks.json").read_text())
+SCRIPT = json.loads((config.BOOKS_DIR / "courage-to-be-disliked" / "examples" / "n3-03.json").read_text())
 
 
 def test_example_script_is_valid():
@@ -81,9 +81,39 @@ def test_render_end_to_end(tmp_path: Path):
     assert float(probe["format"]["duration"]) == pytest.approx(seconds + config.TAIL_SECONDS, abs=0.2)
 
 
-def test_cost_estimate_only_counts_fal_calls():
-    assert pipeline.estimate_cost(SCRIPT, wrote_script=False, voice_backend="piper") == 0
-    assert 0.03 <= pipeline.estimate_cost(SCRIPT, wrote_script=True, voice_backend="fal") <= 0.5
+def test_cost_estimate_counts_claude_and_elevenlabs():
+    assert pipeline.estimate_cost(SCRIPT, None, "piper") == 0
+    tokens = {"input_tokens": 4000, "output_tokens": 6000}
+    assert 0.05 <= pipeline.estimate_cost(SCRIPT, tokens, "elevenlabs") <= 1
+
+
+def test_episode_plan_is_complete_and_unique():
+    episodes = plan.episodes("courage-to-be-disliked")
+    assert len(episodes) >= 40
+    for key in ("id", "hook"):
+        assert len({e[key] for e in episodes}) == len(episodes)
+    assert all(e["format"] in plan.FORMATS and e["angle"] and e["chapter"] for e in episodes)
+    assert all(len(e["hook"].split()) <= 16 for e in episodes)
+    assert set(plan.FORMATS) == {e["format"] for e in episodes}
+    assert plan.find_episode("courage-to-be-disliked", "n3-03")["chapter_id"] == "n3"
+    first = plan.next_episode("courage-to-be-disliked", set())
+    second = plan.next_episode("courage-to-be-disliked", {first["id"]})
+    assert second["chapter_id"] != first["chapter_id"]   # chapters take turns
+
+
+def test_script_prompt_is_about_one_episode(monkeypatch):
+    seen = {}
+
+    def fake_ask(system, messages, max_tokens=16000):
+        seen.update(system=system, user=messages[0]["content"], turns=len(messages))
+        return "Here it is: " + json.dumps(SCRIPT)
+
+    monkeypatch.setattr(llm, "ask", fake_ask)
+    episode = plan.find_episode("courage-to-be-disliked", "n2-06")
+    script = script_mod.write_script(BOOK, episode, avoid=["Old hook one."])
+    assert script["hook"] == SCRIPT["hook"]
+    assert episode["hook"] in seen["user"] and "Old hook one." in seen["user"]
+    assert plan.FORMATS[episode["format"]] in seen["user"] and "ONE narrow idea" in seen["system"]
 
 
 def test_stage_validation_catches_unknown_parts():
@@ -123,44 +153,45 @@ def test_blender_draws_every_example_scene(tmp_path: Path):
 
 
 def test_make_short_with_fakes(tmp_path: Path, monkeypatch):
-    """Whole pipeline with the fal voice and Blender replaced by placeholders."""
-    from b2a import fal, visuals
+    """Whole pipeline with Claude, ElevenLabs and Blender replaced by placeholders."""
+    from b2a import visuals
 
     calls = []
 
-    def fake_run(endpoint, arguments, retries=2):
-        calls.append(endpoint)
-        text = arguments["text"]
-        starts = [i * 0.02 for i in range(len(text))]
-        return {"audio": {"url": "fake://voice.mp3"},
-                "timestamps": [{"characters": list(text),
-                                "character_start_times_seconds": starts,
-                                "character_end_times_seconds": [s + 0.02 for s in starts]}]}
-
-    def fake_download(url, dest):
-        seconds = len(voice.narration_text(SHORT_SCRIPT)) * 0.02
-        render.ffmpeg("-f", "lavfi", "-i", f"sine=frequency=330:duration={seconds}", str(dest))
-        return dest
+    def fake_ask(system, messages, max_tokens=16000):
+        calls.append(messages[0]["content"])
+        llm.usage["input_tokens"] += 3000
+        llm.usage["output_tokens"] += 5000
+        return json.dumps(SHORT_SCRIPT)
 
     def fake_stage(stage, seconds, dest):
         calls.append("blender")
         render.ffmpeg("-f", "lavfi", "-i", f"testsrc2=s=360x640:r=15:d={seconds:.2f}", "-pix_fmt", "yuv420p", str(dest))
         return dest
 
-    monkeypatch.setenv("FAL_KEY", "test")
+    def fake_voice(script, out_dir, audio_duration):
+        text = voice.narration_text(script)
+        audio = out_dir / "voice.wav"
+        render.ffmpeg("-f", "lavfi", "-i", f"sine=frequency=330:duration={len(text) * 0.02}", str(audio))
+        return audio, voice.even_timings(text, len(text) * 0.02), "elevenlabs"
+
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(fal, "run", fake_run)
-    monkeypatch.setattr(fal, "download", fake_download)
-    monkeypatch.setattr(fal, "chat", lambda *a, **k: json.dumps(SHORT_SCRIPT))
+    monkeypatch.setattr(llm, "ask", fake_ask)
+    monkeypatch.setattr(voice, "make_voice", fake_voice)
     monkeypatch.setattr(visuals, "render_stage", fake_stage)
 
-    meta = pipeline.make_short("courage-to-be-disliked", "Life is not a competition", progress=lambda s: None)
+    meta = pipeline.make_short("courage-to-be-disliked", episode_id="next", progress=lambda s: None)
     job = tmp_path / "shorts" / meta["id"]
     assert (job / "short.mp4").exists() and (job / "thumb.jpg").exists()
-    assert meta["hook"] == SHORT_SCRIPT["hook"] and meta["voice"].startswith("elevenlabs-via-fal")
+    assert meta["episode"] == "n1-01" and meta["format"] == "myth_buster" and meta["chapter"]
+    assert meta["hook"] == SHORT_SCRIPT["hook"] and meta["voice"].startswith("elevenlabs")
     assert meta["scene_count"] == len(SHORT_SCRIPT["scenes"]) == calls.count("blender")
+    assert meta["script_tokens"] == {"input_tokens": 3000, "output_tokens": 5000}
     assert meta["estimated_cost_usd"] > 0
     assert pipeline.list_shorts()[0]["id"] == meta["id"]
+    assert pipeline.made_episodes("courage-to-be-disliked") == {"n1-01"}
+    assert plan.next_episode("courage-to-be-disliked", {"n1-01"})["id"] == "n2-01"
+    assert "n1-01" not in calls[0] and "Your past isn" in calls[0]
 
 
 SHORT_SCRIPT = {**SCRIPT, "scenes": [

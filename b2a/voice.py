@@ -1,9 +1,8 @@
 """Step 2: voiceover with one consistent voice, plus word timings.
 
-Three ways to get a voice:
+Two ways to get a voice:
 - "elevenlabs": ElevenLabs with your own ELEVENLABS_API_KEY. Best quality, and
   the narrator, the philosopher and the youth each get their own voice.
-- "fal": ElevenLabs through fal (one narrator voice).
 - "piper": a free voice that runs on our own server. No key, no cost.
 TTS_BACKEND=auto (default) picks the best one that has a key and falls back to
 piper when a paid voice is not available.
@@ -15,7 +14,6 @@ from __future__ import annotations
 
 import base64
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -23,7 +21,7 @@ from typing import Any, Callable
 
 import requests
 
-from . import config, fal
+from . import config
 
 Word = dict[str, Any]  # {"text": str, "start": float, "end": float}
 
@@ -50,7 +48,7 @@ def words_from_characters(chars: list[str], starts: list[float], ends: list[floa
 
 
 def parse_timestamps(raw: Any) -> list[Word]:
-    """Accept the shapes fal/ElevenLabs return for timestamps."""
+    """Accept the shapes ElevenLabs returns for timestamps."""
     if not raw:
         return []
     if isinstance(raw, dict):
@@ -103,28 +101,6 @@ def scene_times(script: dict[str, Any], words: list[Word], total: float) -> list
         starts.append(0.0 if index == 0 else max(words[pos]["start"] - 0.08, 0.0))
         index += count
     return [(s, (starts[i + 1] if i + 1 < len(starts) else total)) for i, s in enumerate(starts)]
-
-
-# --- fal (ElevenLabs) -------------------------------------------------------
-
-def voice_fal(script: dict[str, Any], out_dir: Path, audio_duration: Callable[[Path], float]) -> tuple[Path, list[Word]]:
-    text = narration_text(script)
-    result = fal.run(config.TTS_MODEL, {"text": text, "voice": config.TTS_VOICE, "timestamps": True})
-    url = result["audio"]["url"]
-    ext = re.sub(r"[^a-z0-9]", "", url.rsplit(".", 1)[-1].lower())[:4] or "mp3"
-    audio = fal.download(url, out_dir / f"voice.{ext}")
-
-    words = parse_timestamps(result.get("timestamps"))
-    if not words:
-        try:
-            stt = fal.run(config.STT_MODEL, {"audio_url": url, "language_code": "eng",
-                                             "diarize": False, "tag_audio_events": False})
-            words = parse_timestamps(stt.get("words"))
-        except RuntimeError:
-            words = []
-    if not words:
-        words = even_timings(text, audio_duration(audio))
-    return audio, align_to_script(text, words)
 
 
 # --- piper (free, local) ------------------------------------------------------
@@ -223,12 +199,11 @@ def voice_elevenlabs(script: dict[str, Any], out_dir: Path, audio_duration: Call
 def make_voice(script: dict[str, Any], out_dir: Path,
                audio_duration: Callable[[Path], float]) -> tuple[Path, list[Word], str]:
     """Returns the audio file, word timings and which voice was used."""
-    backends = {"elevenlabs": voice_elevenlabs, "fal": voice_fal, "piper": voice_piper}
+    backends = {"elevenlabs": voice_elevenlabs, "piper": voice_piper}
     if config.TTS_BACKEND != "auto":
         order = [config.TTS_BACKEND]
     else:
-        order = (["elevenlabs"] if os.environ.get("ELEVENLABS_API_KEY") else []) \
-            + (["fal"] if os.environ.get("FAL_KEY") else []) + ["piper"]
+        order = (["elevenlabs"] if os.environ.get("ELEVENLABS_API_KEY") else []) + ["piper"]
     for name in order:
         try:
             return (*backends[name](script, out_dir, audio_duration), name)

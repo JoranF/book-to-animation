@@ -1,0 +1,351 @@
+{
+ "book": "courage-to-be-disliked",
+ "note": "One narrow idea per Short. Hooks and examples are our own words, never quotes.",
+ "chapters": [
+  {
+   "id": "n1",
+   "title": "Night 1: Your past does not decide your future",
+   "episodes": [
+    {
+     "id": "n1-01",
+     "title": "Your goal, not your past",
+     "hook": "Your past isn't holding you back. Your goal is.",
+     "angle": "Behaviour serves a goal you have right now, not a cause from long ago. Example: someone who 'can't' go to parties because of an old embarrassment, while the real goal today is to stay safe from new judgment.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n1-02",
+     "title": "Anger is a tool",
+     "hook": "You didn't lose your temper. You used it.",
+     "angle": "Anger is produced on demand to get your way. Example: snapping at a waiter, then answering a phone call from a friend in a sweet voice one second later.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n1-03",
+     "title": "What shyness does for you",
+     "hook": "You're not shy. Shyness is doing a job for you.",
+     "angle": "A trait you say you hate can protect you: if you never speak up, nobody can reject the real you. Example: the quiet new colleague at lunch.",
+     "format": "reframe"
+    },
+    {
+     "id": "n1-04",
+     "title": "The 'if only' life",
+     "hook": "The most comfortable sentence in the world starts with 'if only'.",
+     "angle": "Keeping a dream untested keeps it safe. Example: the novelist who never sends in the manuscript, so the answer can never be no.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n1-05",
+     "title": "You can pick again",
+     "hook": "You picked your personality when you were ten. You can pick again.",
+     "angle": "The way you see the world and yourself was a choice made early, and it can be made again today. Example: 'I'm just a pessimist' as a habit, not a fact.",
+     "format": "challenge"
+    },
+    {
+     "id": "n1-06",
+     "title": "Comfortable unhappiness",
+     "hook": "You're not stuck. You're comfortable.",
+     "angle": "Known unhappiness feels safer than unknown change, so we choose not to change. Example: the old car that rattles but you know every sound of it.",
+     "format": "reframe"
+    },
+    {
+     "id": "n1-07",
+     "title": "Use what you have",
+     "hook": "Stop asking what you were given.",
+     "angle": "What matters is how you use what you have, not what you got. Example: two game characters with the same weak starting stats, one keeps complaining at the start screen, one plays.",
+     "format": "one_question"
+    },
+    {
+     "id": "n1-08",
+     "title": "Same past, different meaning",
+     "hook": "Two people. Same bad childhood. Opposite lives.",
+     "angle": "Events do not decide us, the meaning we give them does. Example: two siblings from the same loud house, one says 'so I can't trust anyone', the other 'so I will build a calm home'.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "n2",
+   "title": "Night 2: Every problem is about other people",
+   "episodes": [
+    {
+     "id": "n2-01",
+     "title": "Alone in the universe",
+     "hook": "If you were the only person in the universe, your problems would disappear.",
+     "angle": "Every worry needs other people in it: even loneliness needs others to exist. Example: would you care about your height on an empty planet?",
+     "format": "one_question"
+    },
+    {
+     "id": "n2-02",
+     "title": "A number you compared",
+     "hook": "Your biggest flaw is a number you compared to someone else's.",
+     "angle": "Feeling inferior is a personal reading, not a fact. Example: being 'short' only hurts next to someone; it can also mean people relax around you.",
+     "format": "reframe"
+    },
+    {
+     "id": "n2-03",
+     "title": "Feeling versus excuse",
+     "hook": "'I'm not smart enough' isn't a feeling. It's an excuse.",
+     "angle": "Feeling behind can push you forward; it turns harmful when it becomes 'because of A, I can't do B'. Example: 'no degree, so no point applying'.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n2-04",
+     "title": "Why people brag",
+     "hook": "People who brag are telling you how small they feel.",
+     "angle": "Showing off borrowed power (name dropping, brands, old wins) is the other side of feeling inferior. Example: the guy who mentions his famous boss in every sentence.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n2-05",
+     "title": "Pain as a crown",
+     "hook": "Some people use their pain as a crown.",
+     "angle": "Misfortune can be used to feel special and to control others. Example: the friend who rejects every bit of comfort with 'you could never understand'.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n2-06",
+     "title": "There is no race",
+     "hook": "You're not behind. There is no race.",
+     "angle": "Life is not a track where everyone runs the same way. Walk forward on a flat field and compare only with who you were yesterday. Example: scrolling through job titles of old classmates.",
+     "format": "reframe"
+    },
+    {
+     "id": "n2-07",
+     "title": "Happy for your friend",
+     "hook": "Why can't you be happy for your friend?",
+     "angle": "When life is a competition, every win of someone else is your loss and people become enemies. Drop the contest and they become comrades. Example: a friend's promotion message.",
+     "format": "one_question"
+    },
+    {
+     "id": "n2-08",
+     "title": "Winning the argument",
+     "hook": "The moment you want to win an argument, you've already lost.",
+     "angle": "When being right turns into beating the other person, it is a power struggle. Step off the stage instead. Example: a comment thread at 2 a.m.",
+     "format": "challenge"
+    },
+    {
+     "id": "n2-09",
+     "title": "I was wrong",
+     "hook": "Saying 'I was wrong' is not losing.",
+     "angle": "Admitting a mistake, saying sorry and stepping back are not defeat, they only feel like it when everything is a contest. Example: a couple arguing over directions.",
+     "format": "dialogue"
+    },
+    {
+     "id": "n2-10",
+     "title": "Looking for flaws",
+     "hook": "You didn't leave because of his flaws. You found flaws because you wanted out.",
+     "angle": "We first set the goal (ending or avoiding a relationship) and then collect reasons. Example: the way he chews was cute for two years.",
+     "format": "myth_buster"
+    }
+   ]
+  },
+  {
+   "id": "n3",
+   "title": "Night 3: Let go of other people's tasks",
+   "episodes": [
+    {
+     "id": "n3-01",
+     "title": "Not here for expectations",
+     "hook": "You're not here to meet anyone's expectations.",
+     "angle": "If you live for approval, you end up living someone else's life. And others are not here to meet yours. Example: choosing a study to make a parent proud.",
+     "format": "reframe"
+    },
+    {
+     "id": "n3-02",
+     "title": "Nobody is watching",
+     "hook": "If no one is watching, do you still pick up the trash?",
+     "angle": "Reward and punishment teach us to do good only when seen. Example: cleaning the office kitchen and waiting for someone to notice.",
+     "format": "one_question"
+    },
+    {
+     "id": "n3-03",
+     "title": "Whose task is this?",
+     "hook": "You're exhausted because you keep doing homework that isn't yours.",
+     "angle": "Ask who ends up living with the result of a choice: that person owns the task. Already made as the first test Short.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n3-04",
+     "title": "That's your task",
+     "hook": "The most loving thing a parent can say: that's your task.",
+     "angle": "Helping is not taking over. You can lead a horse to water. Example: a parent hovering over homework versus saying 'I'm here when you want help'.",
+     "format": "dialogue"
+    },
+    {
+     "id": "n3-05",
+     "title": "Your boss dislikes you",
+     "hook": "Your boss dislikes you. That's his problem. Literally.",
+     "angle": "What others think of you is their task. Yours is to do your work well. Example: a manager who is cold whatever you do.",
+     "format": "reframe"
+    },
+    {
+     "id": "n3-06",
+     "title": "The price of freedom",
+     "hook": "If nobody dislikes you, you're not free.",
+     "angle": "Being disliked by someone is proof you are living by your own choices. It is the cost of freedom, not a goal. Example: saying no to a weekend favour.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n3-07",
+     "title": "Pleasing everyone",
+     "hook": "Pleasing everyone is the easiest way to live. That's the problem.",
+     "angle": "Promising everyone what they want means lying to yourself and to them. Example: saying yes to three plans on the same Saturday night.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n3-08",
+     "title": "You hold the cards",
+     "hook": "You don't need them to change first.",
+     "angle": "You can change your side of a relationship without waiting. Whether they respond is their task. Example: the first message after years of silence with a father.",
+     "format": "challenge"
+    },
+    {
+     "id": "n3-09",
+     "title": "No thanks needed",
+     "hook": "Don't help to be thanked.",
+     "angle": "The moment you give to get something back, you are bound to the other's reaction. Example: holding a door and feeling angry at the missing 'thanks'.",
+     "format": "one_question"
+    }
+   ]
+  },
+  {
+   "id": "n4",
+   "title": "Night 4: You are not the center of the world",
+   "episodes": [
+    {
+     "id": "n4-01",
+     "title": "Main character of one life",
+     "hook": "You're the main character. Of one life. Not everyone's.",
+     "angle": "Worrying all day about how others see you is being focused on yourself. Others are not extras in your film. Example: sure that everyone saw the stain on your shirt.",
+     "format": "reframe"
+    },
+    {
+     "id": "n4-02",
+     "title": "Build where you belong",
+     "hook": "You don't find where you belong. You build it.",
+     "angle": "Belonging does not come from being accepted, it comes from taking part and giving. Ask what you can give, not what you get. Example: the new member of a sports club.",
+     "format": "challenge"
+    },
+    {
+     "id": "n4-03",
+     "title": "Zoom out",
+     "hook": "If your office feels like the whole world, zoom out.",
+     "angle": "When one small group hurts, remember the bigger ones you are part of. A storm in a cup means nothing outside the cup. Example: school drama seen from the whole town.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n4-04",
+     "title": "'Good job'",
+     "hook": "'Good job' is how you talk down to someone.",
+     "angle": "Praise is a judgment from above and teaches people to work for the pat on the head. Example: would you say 'well done, good boy' to your boss?",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n4-05",
+     "title": "Thank you",
+     "hook": "Say 'thank you', not 'good job'.",
+     "angle": "Thanks comes from an equal and tells someone they were useful, which gives courage. Example: a kid who sets the table.",
+     "format": "dialogue"
+    },
+    {
+     "id": "n4-06",
+     "title": "Worth before doing",
+     "hook": "You're valuable before you do anything.",
+     "angle": "People are of worth by being here, not only by what they do. Example: how you feel about a sick friend in a hospital bed who 'does' nothing.",
+     "format": "one_question"
+    },
+    {
+     "id": "n4-07",
+     "title": "Equal, not rude",
+     "hook": "Treat your boss as an equal. Not rude. Equal.",
+     "angle": "Different roles, same worth. Saying no to a senior person is not disrespect. Example: disagreeing in a meeting with a calm 'I see it differently'.",
+     "format": "challenge"
+    },
+    {
+     "id": "n4-08",
+     "title": "Someone goes first",
+     "hook": "Someone has to go first. It can be you.",
+     "angle": "Do not wait for others to cooperate before you start. Example: the first person who starts clapping, or greets the neighbour.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "n5",
+   "title": "Night 5: Live fully, here and now",
+   "episodes": [
+    {
+     "id": "n5-01",
+     "title": "Stop saying you're great",
+     "hook": "Stop telling yourself you're great.",
+     "angle": "Pumping yourself up with 'I can do anything' is lying to yourself. Accept the 60 percent you got and ask how to get closer to 100. Example: a failed exam.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n5-02",
+     "title": "Trust without a receipt",
+     "hook": "Trust people without a receipt.",
+     "angle": "Trust with conditions is a loan. Deep relationships need trust that is given first. Being let down is the other person's task. Example: lending a friend your bike.",
+     "format": "reframe"
+    },
+    {
+     "id": "n5-03",
+     "title": "Too busy",
+     "hook": "Being too busy is a way of hiding.",
+     "angle": "Work can be an excuse to skip the rest of life: home, friends, yourself. Example: answering mail at a kid's birthday.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "n5-04",
+     "title": "Useful without applause",
+     "hook": "You don't need thanks to be useful.",
+     "angle": "Happiness is the private feeling 'I am of use to someone', and it needs no audience. Example: watering the plants in a shared hallway.",
+     "format": "reframe"
+    },
+    {
+     "id": "n5-05",
+     "title": "Normal is fine",
+     "hook": "You don't have to be special.",
+     "angle": "Chasing 'special' comes from not accepting your normal self. Being normal is not being incapable. Example: the pressure to have a big story on social media.",
+     "format": "challenge"
+    },
+    {
+     "id": "n5-06",
+     "title": "Two kids, one wish",
+     "hook": "The kid acting out and the straight-A kid want the same thing.",
+     "angle": "Both want to be special. When being specially good fails, being specially bad is the easy way. Example: one classroom, two desks.",
+     "format": "mini_story"
+    },
+    {
+     "id": "n5-07",
+     "title": "No peak",
+     "hook": "Life isn't a climb to a peak.",
+     "angle": "If life is a climb, most of it is 'on the way'. See it as a dance instead: each moment is already complete. Example: a trip where you only think about the hotel.",
+     "format": "reframe"
+    },
+    {
+     "id": "n5-08",
+     "title": "Light up today",
+     "hook": "Stop planning your life. Light up today.",
+     "angle": "Put a bright spotlight on now and you cannot see the past or the future, and you do not need to. Example: studying one page today instead of dreaming about the diploma.",
+     "format": "challenge"
+    },
+    {
+     "id": "n5-09",
+     "title": "No built-in meaning",
+     "hook": "Life has no meaning. That's the good news.",
+     "angle": "Life has no meaning given in advance, so you get to give it one. Example: an empty save file at the start of a game.",
+     "format": "one_question"
+    },
+    {
+     "id": "n5-10",
+     "title": "Your guiding star",
+     "hook": "One rule so you never feel lost.",
+     "angle": "As long as you keep heading toward 'being of use to others', you can choose freely and be disliked without getting lost. Example: a sailor and one fixed star.",
+     "format": "mini_story"
+    }
+   ]
+  }
+ ]
+}

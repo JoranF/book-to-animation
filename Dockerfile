@@ -10,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Free narrator voice (LibriTTS, CC BY 4.0), used when no fal voice is available.
+# Free narrator voice (LibriTTS, CC BY 4.0), used when no ElevenLabs key is set.
 RUN mkdir -p voices \
     && curl -fsSL https://github.com/rhasspy/piper/releases/download/v0.0.2/voice-en-us-libritts-high.tar.gz \
        | tar xz -C voices

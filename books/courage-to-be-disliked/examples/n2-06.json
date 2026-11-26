@@ -1,0 +1,609 @@
+{
+ "title": "You're not behind. There is no race.",
+ "hook": "I'm twenty-four and I'm already losing.",
+ "hook_type": "you_statement",
+ "description": "The youth is sure he is losing at life. The philosopher asks one question that ends the race. An idea from Adlerian psychology, as explored in The Courage to Be Disliked.",
+ "hashtags": [
+  "#shorts",
+  "#philosophy",
+  "#psychology",
+  "#selfimprovement",
+  "#comparison"
+ ],
+ "scenes": [
+  {
+   "narration": "I'm twenty-four and I'm already losing.",
+   "speaker": "youth",
+   "image": "The youth alone in his dark bedroom, slumping.",
+   "stage": {
+    "set": "bedroom_night",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       0,
+       0.5
+      ],
+      "action": "slump",
+      "mood": "sad"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      0,
+      0.5,
+      0.75
+     ],
+     "dist": 3.2,
+     "height": 1.2
+    }
+   }
+  },
+  {
+   "narration": "Losing what?",
+   "speaker": "philosopher",
+   "image": "The study. The philosopher looks up at him, amused.",
+   "stage": {
+    "set": "study",
+    "props": [
+     {
+      "type": "fireplace",
+      "pos": [
+       0.1,
+       4.15
+      ]
+     },
+     {
+      "type": "rug",
+      "pos": [
+       0,
+       0.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "idle",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.4
+      ],
+      "look_at": "youth",
+      "action": "nod",
+      "mood": "happy"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "focus": "philosopher",
+     "angle": -22
+    }
+   }
+  },
+  {
+   "narration": "Life! My friends have jobs. Houses. Abs.",
+   "speaker": "youth",
+   "image": "The youth counts it off with both hands, angry.",
+   "stage": {
+    "set": "study",
+    "props": [
+     {
+      "type": "fireplace",
+      "pos": [
+       0.1,
+       4.15
+      ]
+     },
+     {
+      "type": "rug",
+      "pos": [
+       0,
+       0.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "talk",
+      "mood": "angry"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.4
+      ],
+      "look_at": "youth",
+      "action": "nod",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "focus": "youth",
+     "angle": 22
+    }
+   }
+  },
+  {
+   "narration": "I see. And who fired the starting gun?",
+   "speaker": "philosopher",
+   "image": "Two-shot, the philosopher points his cane at him.",
+   "stage": {
+    "set": "study",
+    "props": [
+     {
+      "type": "fireplace",
+      "pos": [
+       0.1,
+       4.15
+      ]
+     },
+     {
+      "type": "rug",
+      "pos": [
+       0,
+       0.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "arms_crossed",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.4
+      ],
+      "look_at": "youth",
+      "action": "point",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "target": [
+      0,
+      0.4,
+      0.9
+     ],
+     "dist": 4.3,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "What gun? It's just a race. Everybody runs.",
+   "speaker": "youth",
+   "image": "The youth shrugs, the philosopher shakes his head.",
+   "stage": {
+    "set": "study",
+    "props": [
+     {
+      "type": "fireplace",
+      "pos": [
+       0.1,
+       4.15
+      ]
+     },
+     {
+      "type": "rug",
+      "pos": [
+       0,
+       0.6
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.7,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "shrug",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.4
+      ],
+      "look_at": "youth",
+      "action": "shake_head",
+      "mood": "calm"
+     }
+    ],
+    "camera": {
+     "move": "orbit",
+     "target": [
+      0,
+      0.4,
+      0.9
+     ],
+     "dist": 4.6,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "Look again. Nobody is running the same way.",
+   "speaker": "narrator",
+   "image": "A wide meadow: grey people walk in all directions.",
+   "stage": {
+    "set": "field",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       0,
+       0.6
+      ],
+      "action": "look_around"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       -3,
+       2.5
+      ],
+      "to": [
+       2.5,
+       4.5
+      ],
+      "face": 60,
+      "action": "walk"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       3,
+       1.8
+      ],
+      "to": [
+       -2,
+       3.5
+      ],
+      "face": -70,
+      "action": "walk",
+      "offset": 0.4
+     },
+     {
+      "who": "grey",
+      "pos": [
+       1.5,
+       5
+      ],
+      "to": [
+       2.5,
+       1.5
+      ],
+      "face": 10,
+      "action": "walk",
+      "offset": 0.9
+     },
+     {
+      "who": "grey",
+      "pos": [
+       -2.2,
+       4.5
+      ],
+      "to": [
+       -3.5,
+       1.2
+      ],
+      "face": -20,
+      "action": "walk",
+      "offset": 1.3
+     }
+    ],
+    "camera": {
+     "move": "rise",
+     "target": [
+      0,
+      2.5,
+      1.0
+     ],
+     "dist": 7.5,
+     "height": 2.0
+    }
+   }
+  },
+  {
+   "narration": "No track. No finish line. Just people, walking.",
+   "speaker": "philosopher",
+   "image": "The philosopher sweeps his cane over the meadow.",
+   "stage": {
+    "set": "field",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.2
+      ],
+      "look_at": "philosopher",
+      "action": "look_around",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "point"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       -3,
+       2.5
+      ],
+      "to": [
+       2.5,
+       4.5
+      ],
+      "face": 60,
+      "action": "walk"
+     },
+     {
+      "who": "grey",
+      "pos": [
+       3,
+       1.8
+      ],
+      "to": [
+       -2,
+       3.5
+      ],
+      "face": -70,
+      "action": "walk",
+      "offset": 0.4
+     }
+    ],
+    "camera": {
+     "move": "pull_back",
+     "target": [
+      0,
+      0.5,
+      0.9
+     ],
+     "dist": 4.6,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "So I can't be behind?",
+   "speaker": "youth",
+   "image": "Close on the youth, surprised.",
+   "stage": {
+    "set": "field",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.2
+      ],
+      "look_at": "philosopher",
+      "action": "startle",
+      "mood": "worried"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "nod"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "focus": "youth",
+     "angle": 20
+    }
+   }
+  },
+  {
+   "narration": "Behind whom? You are the only one on your road.",
+   "speaker": "philosopher",
+   "image": "Close on the philosopher, calm.",
+   "stage": {
+    "set": "field",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.2
+      ],
+      "look_at": "philosopher",
+      "action": "idle",
+      "mood": "plain"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "talk"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "focus": "philosopher",
+     "angle": -20
+    }
+   }
+  },
+  {
+   "narration": "Great. So I just stop trying?",
+   "speaker": "youth",
+   "image": "The youth crosses his arms, sarcastic.",
+   "stage": {
+    "set": "field",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.2
+      ],
+      "look_at": "philosopher",
+      "action": "arms_crossed",
+      "mood": "smirk"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.7,
+       0.3
+      ],
+      "look_at": "youth",
+      "action": "laugh"
+     }
+    ],
+    "camera": {
+     "move": "static",
+     "target": [
+      0,
+      0.4,
+      0.9
+     ],
+     "dist": 4.2,
+     "height": 1.3
+    }
+   }
+  },
+  {
+   "narration": "No. You walk. One step ahead of yesterday's you.",
+   "speaker": "philosopher",
+   "image": "The philosopher points forward down a path.",
+   "stage": {
+    "set": "field",
+    "props": [
+     {
+      "type": "path",
+      "from": [
+       0,
+       0
+      ],
+      "to": [
+       0.5,
+       14
+      ]
+     }
+    ],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -0.6,
+       0.4
+      ],
+      "look_at": "philosopher",
+      "action": "nod",
+      "mood": "calm"
+     },
+     {
+      "who": "philosopher",
+      "pos": [
+       0.6,
+       0.4
+      ],
+      "face": 160,
+      "action": "point"
+     }
+    ],
+    "camera": {
+     "move": "push_in",
+     "target": [
+      0,
+      1.5,
+      0.9
+     ],
+     "dist": 4.8,
+     "height": 1.6
+    }
+   }
+  },
+  {
+   "narration": "So tell me. Who are you still racing?",
+   "speaker": "narrator",
+   "image": "Sunrise: the youth walks off alone over the hill, happy.",
+   "stage": {
+    "set": "hill_sunrise",
+    "props": [],
+    "actors": [
+     {
+      "who": "youth",
+      "pos": [
+       -1.0,
+       1.2,
+       0.97
+      ],
+      "to": [
+       0.9,
+       1.2,
+       0.97
+      ],
+      "face": 90,
+      "action": "walk",
+      "mood": "happy"
+     }
+    ],
+    "camera": {
+     "move": "pull_back",
+     "target": [
+      0,
+      1.2,
+      1.7
+     ],
+     "dist": 5.5,
+     "height": 2.0
+    }
+   }
+  }
+ ]
+}

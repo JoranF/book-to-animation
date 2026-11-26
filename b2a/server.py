@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, pipeline, script as script_mod
+from . import config, pipeline, plan as plan_mod, script as script_mod
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -41,7 +41,8 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)) -> None:
 
 class NewShort(BaseModel):
     book: str = "courage-to-be-disliked"
-    topic: str = Field(min_length=3, max_length=200)
+    episode: str = Field(default="", max_length=40)   # id from the plan, or "next"
+    topic: str = Field(default="", max_length=200)   # free topic when no episode
     idea: str = Field(default="", max_length=1000)
 
 
@@ -53,7 +54,8 @@ def worker() -> None:
         try:
             job["status"] = "running"
             pipeline.make_short(job["book"], job["topic"], job["idea"], short_id,
-                                progress=lambda step, job=job: job.update(step=step))
+                                progress=lambda step, job=job: job.update(step=step),
+                                episode_id=job["episode"] or None)
             job["status"] = "done"
         except Exception as exc:  # noqa: BLE001 - report every failure to the UI
             traceback.print_exc()
@@ -66,7 +68,8 @@ def short_path(short_id: str, name: str) -> Path:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
-    return {"ok": True, "fal_key_set": bool(os.environ.get("FAL_KEY"))}
+    return {"ok": True, "claude_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
+            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY"))}
 
 
 @app.post("/api/shorts", dependencies=[Depends(auth)])
@@ -75,10 +78,31 @@ def create_short(body: NewShort) -> dict[str, Any]:
         script_mod.load_book(body.book)
     except FileNotFoundError as exc:
         raise HTTPException(404, str(exc)) from exc
-    short_id = pipeline.new_id(body.topic)
-    jobs[short_id] = {"id": short_id, "status": "queued", "step": "queued", **body.model_dump()}
+    data = body.model_dump()
+    if body.episode:
+        busy = {j["episode"] for j in jobs.values() if j["status"] in ("queued", "running")}
+        try:
+            episode = (plan_mod.next_episode(body.book, pipeline.made_episodes(body.book) | busy)
+                       if body.episode == "next" else plan_mod.find_episode(body.book, body.episode))
+        except KeyError as exc:
+            raise HTTPException(404, str(exc.args[0])) from exc
+        data.update(episode=episode["id"], topic=episode["title"])
+    elif len(body.topic.strip()) < 3:
+        raise HTTPException(422, "Give an episode or a topic")
+    short_id = pipeline.new_id(f"{data['episode']}-{data['topic']}" if data["episode"] else data["topic"])
+    jobs[short_id] = {"id": short_id, "status": "queued", "step": "queued", **data}
     todo.put(short_id)
     return jobs[short_id]
+
+
+@app.get("/api/episodes", dependencies=[Depends(auth)])
+def get_episodes(book: str = "courage-to-be-disliked") -> dict[str, Any]:
+    """The episode plan of a book, with which episodes already have a Short."""
+    plan = plan_mod.load_plan(Path(book).name) or {"chapters": []}
+    made = pipeline.made_episodes(book)
+    return {"book": book, "chapters": [
+        {**ch, "episodes": [{**ep, "made": ep["id"] in made} for ep in ch["episodes"]]}
+        for ch in plan["chapters"]]}
 
 
 @app.get("/api/shorts", dependencies=[Depends(auth)])
@@ -132,25 +156,36 @@ button{background:#ffe500;color:#111;font-weight:700;cursor:pointer}
 video{width:100%;border-radius:8px;background:#000}small{color:#aaa}.job{padding:8px;background:#221f33;border-radius:6px;margin:6px 0}</style>
 <h1>book-to-animation</h1>
 <form onsubmit="go(event)"><select name=book>__BOOKS__</select>
-<input name=topic list=topics placeholder="Topic, e.g. Separation of tasks" required><datalist id=topics>__TOPICS__</datalist>
-<textarea name=idea placeholder="Optional idea or angle"></textarea><button>Make Short</button></form>
+<select name=episode id=episode onchange="pick()"></select><div id=angle class=job hidden></div>
+<div id=own hidden><input name=topic placeholder="Your own topic">
+<textarea name=idea placeholder="Optional idea or angle"></textarea></div><button>Make Short</button></form>
 <div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div>
 <script>
-const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts');
+const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts'),epEl=document.getElementById('episode');
+let eps={},madeKey='';
+function pick(){const e=eps[epEl.value],a=document.getElementById('angle');document.getElementById('own').hidden=epEl.value!=='';
+a.hidden=!e;if(e)a.innerHTML=`<b>${esc(e.hook)}</b><br><small>${esc(e.format)}: ${esc(e.angle)}</small>`}
+async function plan(){const book=document.querySelector('[name=book]').value;
+const d=await (await fetch('/api/episodes?book='+encodeURIComponent(book))).json();
+const key=JSON.stringify(d.chapters.map(c=>c.episodes.map(e=>e.made)));if(key===madeKey)return;madeKey=key;eps={};const keep=epEl.value;
+epEl.innerHTML='<option value=next>Next episode that is not made yet</option>'+d.chapters.map(c=>`<optgroup label="${esc(c.title)}">`+
+c.episodes.map(e=>{eps[e.id]=e;return `<option value="${esc(e.id)}">${e.made?'\u2713 ':''}${esc(e.id)} ${esc(e.title)}</option>`}).join('')+'</optgroup>').join('')+
+'<option value="">Own topic...</option>';if(keep)epEl.value=keep;pick()}
+document.querySelector('[name=book]').onchange=()=>{madeKey='';plan()};
 async function go(e){e.preventDefault();const f=new FormData(e.target);
 await fetch('/api/shorts',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.fromEntries(f))});load()}
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const esc0=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function load(){const d=await (await fetch('/api/shorts')).json();
 jobsEl.innerHTML=d.jobs.map(j=>`<div class=job>${esc(j.topic)}: <b>${esc(j.status)}</b> (${esc(j.step)}) ${esc(j.error)}</div>`).join('');
 const html=d.shorts.map(s=>`<div><video controls preload=none poster="/files/${esc(s.id)}/thumb.jpg" src="/files/${esc(s.id)}/short.mp4"></video>
-<b>${esc(s.title)}</b><br><small>${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}, ${esc(s.topic)}</small></div>`).join('');
+<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}</small></div>`).join('');
 if(shortsEl.dataset.h!==html){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
-load();setInterval(load,5000)</script>"""
+plan();load();setInterval(()=>{load();plan()},5000)</script>"""
 
 
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(auth)])
 def index() -> str:
     books = [script_mod.load_book(p.parent.name) for p in sorted(config.BOOKS_DIR.glob("*/book.json"))]
     options = "".join(f'<option value="{html.escape(b["slug"])}">{html.escape(b["title"])}</option>' for b in books)
-    topics = "".join(f'<option value="{html.escape(t)}">' for b in books for t in b.get("topics", []))
-    return PAGE.replace("__BOOKS__", options).replace("__TOPICS__", topics)
+    return PAGE.replace("__BOOKS__", options)

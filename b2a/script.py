@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import config, fal, stage as stage_mod
+from . import config, llm, plan as plan_mod, stage as stage_mod
 
 SYSTEM = """You write scripts for a YouTube Shorts channel that explains ideas \
 from philosophy and psychology books as short animated stories.
@@ -16,19 +16,31 @@ Hard rules:
 book. No sentences from the book, no chapter structure, no character lines \
 from the book. Do not mention the book title or authors in the narration.
 - Use fresh, concrete, modern examples that are NOT in the book.
+- This Short covers ONE narrow idea (the episode below). Do not summarise the \
+book or touch its other ideas. A viewer who has seen ten other Shorts from \
+this series must still find this one new.
 - Spoken English, simple words, short sentences, second person ("you").
 - 95 to 125 words of narration in total (about 40 to 50 seconds).
 - The first sentence is the hook: under 14 words, creates tension or \
 curiosity, no greeting, no "did you know".
 - End with one question or one line that makes people comment or rewatch.
-- 8 to 10 scenes. Each scene is 1 or 2 short sentences of narration.
+- 9 to 14 scenes. Each scene is ONE line: 1 or 2 short sentences.
 
 Visuals: a late-90s low-poly 3D game world with two recurring characters:
 {characters}
 Each scene needs:
-- "speaker": "narrator" for almost every scene. At most two scenes may be a \
-short line spoken by "philosopher" or "youth" themselves when that makes it \
-livelier; that character must then be in the scene.
+- "speaker": who says this scene's line: "narrator", "philosopher" or \
+"youth", each with their own voice. The Short is a CONVERSATION, not a \
+lecture: at least half of the scenes are the youth and the philosopher \
+talking to each other, and each line reacts to the line before it. The youth \
+is impatient and a bit sarcastic: he objects, cuts in, jokes, gets it wrong. \
+The philosopher stays calm and answers short, with a twist or a question \
+back. A character line is at most 12 words. No speeches, no "As I said". The \
+narrator only does quick set-ups and bridges (the hook may be said by a \
+character instead). Whoever speaks must be an actor in that scene.
+- Engagement comes first: tension in the first two seconds, a new beat every \
+3 to 4 seconds, one moment of friction or humour between the two, and the \
+answer to the hook only near the end.
 - "image": one sentence describing the picture for a human reader.
 - "stage": the 3D scene, built as described below.
 
@@ -51,8 +63,8 @@ def _extract_json(text: str) -> dict[str, Any]:
 
 def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
     scenes = script.get("scenes") or []
-    if not 5 <= len(scenes) <= 12:
-        raise ValueError(f"Expected 5-12 scenes, got {len(scenes)}")
+    if not 5 <= len(scenes) <= 16:
+        raise ValueError(f"Expected 5-16 scenes, got {len(scenes)}")
     for number, scene in enumerate(scenes, 1):
         if not str(scene.get("narration", "")).strip():
             raise ValueError(f"Scene {number} is missing 'narration'")
@@ -62,6 +74,9 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
             scene["stage"] = stage_mod.validate(scene.get("stage") or dict(stage_mod.DEFAULT))
         except ValueError as exc:
             raise ValueError(f"Scene {number} stage: {exc}") from exc
+        for actor in scene["stage"]["actors"]:      # the speaker's mouth moves
+            if actor["who"] == scene["speaker"]:
+                actor["talking"] = True
     words = sum(len(s["narration"].split()) for s in scenes)
     if not 60 <= words <= 160:
         raise ValueError(f"Narration has {words} words, expected 60-160")
@@ -73,34 +88,45 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
     return script
 
 
-def write_script(book: dict[str, Any], topic: str, idea: str = "",
-                 learnings: str = "") -> dict[str, Any]:
+def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str = "",
+                 avoid: list[str] | None = None) -> dict[str, Any]:
+    """Write the script for one episode (see plan.py for what an episode is)."""
     characters = "\n".join(
         f'- "{key}": {c["prompt"]}' for key, c in book["characters"].items()
     )
+    fmt = episode.get("format") if episode.get("format") in plan_mod.FORMATS else "reframe"
     user = (
         f"Book: {book['title']} ({book.get('school', '')}).\n"
-        f"What the book is about: {book['summary']}\n"
-        f"Topic for this Short: {topic}\n"
+        f"What the book is about (background only): {book['summary']}\n\n"
+        f"Episode: {episode['title']}\n"
     )
-    if idea:
-        user += f"Angle / idea from the channel owner: {idea}\n"
+    if episode.get("chapter"):
+        user += f"Part of the book: {episode['chapter']}\n"
+    if episode.get("angle"):
+        user += f"The one idea and angle: {episode['angle']}\n"
+    if episode.get("hook"):
+        user += f"Planned hook (keep it or make it sharper): {episode['hook']}\n"
+    user += f"Format \"{fmt}\": {plan_mod.FORMATS[fmt]}\n"
+    if avoid:
+        user += ("\nHooks of Shorts we already made. Yours must sound and be built "
+                 "differently, with a different example and opening scene:\n"
+                 + "\n".join(f"- {h}" for h in avoid) + "\n")
     if learnings:
         user += (
             "\nWhat worked and did not work on this channel so far "
             f"(use it):\n{learnings}\n"
         )
-    messages = [
-        {"role": "system", "content": SYSTEM.format(characters=characters, guide=stage_mod.GUIDE)},
-        {"role": "user", "content": user},
-    ]
+    system = SYSTEM.format(characters=characters, guide=stage_mod.GUIDE)
+    messages: list[dict[str, Any]] = [{"role": "user", "content": user}]
     error: Exception | None = None
     for _ in range(3):
+        text = llm.ask(system, messages)
         try:
-            return validate(_extract_json(fal.chat(config.SCRIPT_MODEL, messages, max_tokens=8000)), book)
+            return validate(_extract_json(text), book)
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
             error = exc
-            messages.append({"role": "user", "content": f"Invalid: {exc}. Return the corrected JSON only."})
+            messages += [{"role": "assistant", "content": text or "(empty)"},
+                         {"role": "user", "content": f"Invalid: {exc}. Return the corrected JSON only."}]
     raise RuntimeError(f"Could not get a valid script: {error}")
 
 

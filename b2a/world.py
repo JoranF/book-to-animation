@@ -405,7 +405,65 @@ def act_nod(c, t, T, p):
     c.arm(0, 3 * sin(t)); c.arm(1, 4)
 
 
+def act_talk(c, t, T, p):       # explaining with both hands
+    c.breathe(t)
+    c.arm(0, 38 + 16 * sin(t * 4.1), 16 + 8 * sin(t * 2.3))
+    c.arm(1, 34 + 16 * sin(t * 4.1 + 2.0), 16 + 8 * sin(t * 2.9))
+    deg(c.body, z=4 * sin(t * 1.7), x=3)
+
+
+def act_shrug(c, t, T, p):      # "how should I know": shoulders and palms up, twice
+    c.breathe(t)
+    k = max(sin(t * 3.0), 0) ** 0.5
+    c.arm(0, 30 * k, 7 + 40 * k); c.arm(1, 30 * k, 7 + 40 * k)
+    c.body.location.z = c.leg + 0.035 * c.s * k
+    deg(c.neck, y=10 * k)
+
+
+def act_shake_head(c, t, T, p):
+    c.breathe(t)
+    deg(c.neck, z=24 * sin(t * 6.0) * (1 - 0.5 * ease(t / max(T, 0.1))))
+    c.arm(0, 4); c.arm(1, 4)
+
+
+def act_facepalm(c, t, T, p):   # hand to the forehead, head sinks
+    k = ease((t - 0.15) / 0.45)
+    c.breathe(t, 1 - k * 0.5)
+    c.arm(1, 150 * k, -24 * k)
+    deg(c.neck, x=-16 * k, z=5 * sin(t * 2.5) * k)
+    deg(c.body, x=-5 * k)
+
+
+def act_startle(c, t, T, p):    # jumps back in surprise, then stares
+    k = ease(t / 0.18) - ease((t - 0.25) / 0.35)
+    c.body.location.z = c.leg + 0.16 * c.s * k
+    hold = ease(t / 0.2)
+    c.arm(0, 25 * hold, 7 + 55 * hold); c.arm(1, 25 * hold, 7 + 55 * hold)
+    deg(c.body, x=9 * hold)
+    deg(c.neck, x=6 * hold)
+
+
+def act_laugh(c, t, T, p):
+    bounce = abs(sin(t * 9.0))
+    c.body.location.z = c.leg + 0.03 * c.s * bounce
+    deg(c.body, x=7 + 3 * bounce)
+    deg(c.neck, x=12 + 6 * bounce)
+    c.arm(0, 50, -30); c.arm(1, 50, -30)
+
+
+def speak(c: Character, t: float) -> None:
+    """Layer on top of any action: flapping mouth and a lively head."""
+    mouth = c.face["mouth"]
+    base = c.__dict__.setdefault("mouth_base", tuple(mouth.scale))
+    syllable = abs(sin(t * 10.5)) * (0.55 + 0.45 * abs(sin(t * 2.7)))
+    mouth.scale = (base[0] * (1 - 0.25 * syllable), base[1], base[2] * (1 + 3.2 * syllable))
+    c.neck.rotation_euler.x += math.radians(3.5 * sin(t * 5.2))
+    c.neck.rotation_euler.y += math.radians(2.5 * sin(t * 3.1))
+
+
 ACTIONS: dict[str, Callable] = {
+    "talk": act_talk, "shrug": act_shrug, "shake_head": act_shake_head,
+    "facepalm": act_facepalm, "startle": act_startle, "laugh": act_laugh,
     "idle": act_idle, "walk": act_walk, "trudge": act_trudge, "slump": act_slump,
     "stop": act_stop, "point": act_point, "point_viewer": act_point_viewer,
     "look_around": act_look_around, "give": act_give, "reach": act_reach, "paint": act_paint,
@@ -844,6 +902,8 @@ def build_scene(stage: dict[str, Any]) -> list[Updater]:
         def animate(t, T, char=char, action=action, spec=spec):
             char.rest()
             action(char, t + spec.get("offset", 0.0), T, spec)
+            if spec.get("talking"):
+                speak(char, t)
         updaters.append(animate)
     updaters.append(make_camera(stage.get("camera", {})))
     return updaters
