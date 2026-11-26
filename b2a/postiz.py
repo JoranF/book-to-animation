@@ -71,7 +71,7 @@ def settings_for(platform: str, meta: dict[str, Any]) -> dict[str, Any]:
         return {"__type": "tiktok", "title": title[:90], "privacy_level": "PUBLIC_TO_EVERYONE",
                 "duet": True, "stitch": True, "comment": True, "autoAddMusic": "no",
                 "brand_content_toggle": False, "brand_organic_toggle": False,
-                "content_posting_method": "DIRECT_POST",
+                "content_posting_method": os.environ.get("POSTIZ_TIKTOK_METHOD", "DIRECT_POST"),
                 # The voices and script are AI-made: say so, as TikTok asks.
                 "video_made_with_ai": os.environ.get("POSTIZ_TIKTOK_AI_LABEL", "1") != "0"}
     if platform in ("instagram", "instagram-standalone"):

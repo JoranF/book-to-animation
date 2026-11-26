@@ -110,6 +110,20 @@ Nothing is posted automatically. What was sent is kept in `meta.json` under
 `posts`. API: `GET /api/postiz/channels`,
 `POST /api/shorts/{id}/publish {"channels": [...], "when": "2026-12-01T18:00:00+01:00"}`.
 
+## One dashboard for every pipeline
+
+The web app is also the shared dashboard ("Studio"): one login, a tab for our
+Shorts and one tab per other pipeline (for example the stream clipper), each
+with review buttons and "Post with Postiz". The pipelines stay separate apps.
+
+A pipeline plugs in by offering a tiny contract (described in
+`b2a/sources.py`): `GET /api/items?status=`, the video file, and optionally
+`POST /api/items/{id}/status` and `POST /api/items/{id}/sent`, behind HTTP
+basic auth. Then set `SOURCE_<NAME>_URL` and `SOURCE_<NAME>_PASSWORD` here
+(`SOURCE_CLIPS_URL=...` gives a "Clips" tab). The dashboard sends to Postiz
+itself, so a new pipeline needs no Postiz code. This app offers the same
+contract for its own Shorts at `GET /api/items`.
+
 ## Feedback loop
 
 `meta.json` stores what we want to learn from per video: episode, chapter,

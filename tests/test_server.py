@@ -85,3 +85,66 @@ def test_publish_to_postiz(monkeypatch, tmp_path):
     assert "LibriTTS" in yt["value"][0]["content"] and "#philosophy" in yt["value"][0]["content"]
     assert json.loads((job / "meta.json").read_text())["posts"][0]["channels"][0]["platform"] == "youtube"
     assert client.post("/api/shorts/nope/publish", auth=ME, json={"channels": ["yt1"]}).status_code == 404
+
+
+def test_other_pipelines_plug_in(monkeypatch, tmp_path):
+    """A pipeline that offers /api/items shows up as a tab and can be sent to Postiz."""
+    from b2a import postiz, sources
+
+    monkeypatch.setenv("APP_PASSWORD", "secret")
+    monkeypatch.setattr(server.config, "DATA_DIR", tmp_path)
+    client = TestClient(server.app)
+    assert client.get("/api/sources", auth=ME).json() == {"sources": []}
+    assert client.get("/api/items", auth=ME).json() == {"items": []}      # we offer the same contract
+    calls = []
+
+    class Reply:
+        def __init__(self, code=200, data=None, headers=None):
+            self.status_code, self.data, self.headers = code, data, headers or {}
+
+        def json(self):
+            return self.data
+
+        def iter_content(self, size):
+            yield b"mp4"
+
+        def close(self):
+            pass
+
+    def fake_request(method, url, allow_redirects, auth, timeout, **kwargs):
+        assert auth[1] == "pw" and url.startswith("https://clipper.test/") and allow_redirects is False
+        path = url.split("clipper.test")[1]
+        calls.append((method, path, kwargs.get("json")))
+        if path == "/api/items":
+            ok = kwargs["params"]["status"] == "approved"
+            return Reply(data={"items": [{"id": 7, "title": "Clutch", "caption": "What a play", "hashtags": ["fps"],
+                                          "status": "approved", "video": "/clips/7/video"}] if ok else []})
+        if path == "/clips/7/video":
+            return Reply(206, headers={"Content-Type": "video/mp4", "Content-Range": "bytes 0-2/3", "X-Other": "x"})
+        return Reply(404 if path.endswith("/sent") else 200)
+
+    sent_meta = {}
+
+    def fake_publish(meta, video, channels, when, draft):
+        sent_meta.update(meta, bytes=video.read_bytes())
+        return {"type": "schedule", "channels": channels}
+
+    monkeypatch.setenv("SOURCE_CLIPS_URL", "https://clipper.test/")
+    monkeypatch.setenv("SOURCE_CLIPS_PASSWORD", "pw")
+    monkeypatch.setattr(sources.requests, "request", fake_request)
+    monkeypatch.setattr(postiz, "publish", fake_publish)
+    assert client.get("/api/sources", auth=ME).json() == {"sources": ["clips"]}
+    assert client.get("/api/sources/clips/items", auth=ME).json()["items"][0]["title"] == "Clutch"
+    assert "error" in client.get("/api/sources/nope/items", auth=ME).json()
+    assert client.post("/api/sources/clips/items/7/status", auth=ME, json={"status": "rejected"}).status_code == 200
+    assert calls[-1] == ("POST", "/api/items/7/status", {"status": "rejected"})
+    assert client.post("/api/sources/clips/items/7/status", auth=ME, json={"status": "posted"}).status_code == 502
+    sent = client.post("/api/sources/clips/items/7/publish", auth=ME,
+                       json={"channels": ["yt1"], "when": "2026-12-01T18:00:00Z"})
+    assert sent.json() == {"type": "schedule", "channels": ["yt1"], "recorded_by_source": False}
+    assert sent_meta == {"title": "Clutch", "description": "What a play", "hashtags": ["#fps"], "bytes": b"mp4"}
+    video = client.get("/sources/clips/video/7", auth=ME, headers={"Range": "bytes=0-"})
+    assert video.status_code == 206 and video.content == b"mp4" and "x-other" not in video.headers
+    assert client.get("/sources/clips/video/7").status_code == 401
+    with __import__("pytest").raises(RuntimeError):
+        sources.video("clips", "//evil.test/x")
