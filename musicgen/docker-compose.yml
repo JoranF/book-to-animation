@@ -9,15 +9,17 @@
 # Then in the book-to-animation app:
 #   ACESTEP_URL=http://b2a-acestep:8001
 #
-# The host needs the NVIDIA driver and the NVIDIA Container Toolkit
-# (check with: nvidia-smi, and docker run --rm --gpus all ubuntu nvidia-smi).
+# The host needs the NVIDIA driver (580 branch: the last one for Pascal cards)
+# and the NVIDIA Container Toolkit. nvidia is NOT the default Docker runtime on
+# this server (that broke Dokploy), so the GPU is requested below explicitly.
 # First start downloads the model weights (~10 GB) into the checkpoints volume.
 
 services:
   acestep:
     build:
-      # official repo, pinned to a release so a rebuild never changes behaviour
-      context: https://github.com/ace-step/ACE-Step-1.5.git#v0.1.8
+      # Dockerfile next to this file: ACE-Step pinned to v0.1.8 with a PyTorch
+      # build that still supports our GTX 1050 Ti (Pascal, see the Dockerfile)
+      context: .
       dockerfile: Dockerfile
     container_name: b2a-acestep
     restart: unless-stopped
@@ -34,8 +36,8 @@ services:
       - ACESTEP_API_HOST=0.0.0.0
       - ACESTEP_API_PORT=8001
       - ACESTEP_API_KEY=${ACESTEP_API_KEY:?set ACESTEP_API_KEY in Dokploy}
-      # turbo model (8 steps). We send every setting ourselves, so the
-      # language model is only loaded if ACE-Step really needs it (0.6B = small).
+      # turbo model (8 steps). With 4 GB of VRAM ACE-Step picks its lowest tier
+      # itself (INT8, CPU offload, no language model); we send every setting.
       - ACESTEP_CONFIG_PATH=acestep-v15-turbo
       - ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
       - ACESTEP_LM_BACKEND=pt

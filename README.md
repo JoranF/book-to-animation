@@ -118,7 +118,7 @@ slump or shrug) and a chime on the last line, at most two per scene.
 The script writer picks a `music_mood` (curious, tense, warm, playful,
 melancholy, triumphant). With `ACESTEP_URL` set, the music comes from
 [ACE-Step 1.5](https://github.com/ace-step/ACE-Step-1.5) (open model, MIT),
-running as its own Dokploy Compose app on the GPU: `musicgen/docker-compose.yml`.
+running as its own Dokploy Compose app on the GPU: `musicgen/docker-compose.yml` with its own `musicgen/Dockerfile` (swaps in the CUDA 12.6 build of PyTorch, because the 12.8 build has no kernels for our Pascal GTX 1050 Ti).
 Every mood gets a prompt in the late-90s console style, instrumental, with a
 fixed tempo and key. Tracks are kept in `DATA_DIR/music/<mood>/` and reused
 once a mood has `MUSIC_PER_MOOD` tracks (default 4), so the GPU only works
