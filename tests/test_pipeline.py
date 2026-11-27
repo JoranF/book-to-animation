@@ -192,6 +192,8 @@ def test_make_short_with_fakes(tmp_path: Path, monkeypatch):
     assert pipeline.made_episodes("courage-to-be-disliked") == {"n1-01"}
     assert plan.next_episode("courage-to-be-disliked", {"n1-01"})["id"] == "n2-01"
     assert "n1-01" not in calls[0] and "Your past isn" in calls[0]
+    assert meta["music"]["source"] == "chiptune" and meta["sfx"] and "sting" in meta["sfx"]
+    assert (job / "sfx.wav").exists() and meta["trend_brief"] is None
 
 
 SHORT_SCRIPT = {**SCRIPT, "scenes": [

@@ -44,8 +44,10 @@ def find_episode(book_slug: str, episode_id: str) -> dict[str, Any]:
     raise KeyError(f"Unknown episode '{episode_id}' for book '{book_slug}'")
 
 
-def next_episode(book_slug: str, made: set[str]) -> dict[str, Any]:
-    """The next episode that has no Short yet, taking turns between chapters."""
+def next_episode(book_slug: str, made: set[str], scores: dict[str, float] | None = None) -> dict[str, Any]:
+    """The next episode that has no Short yet, taking turns between chapters.
+    Within the chapter whose turn it is, the episode that fits current trends best
+    goes first (scores from trends.py); without scores it is plan order."""
     todo = [ep for ep in episodes(book_slug) if ep["id"] not in made]
     if not todo:
         raise KeyError(f"Every episode of '{book_slug}' has been made")
@@ -53,7 +55,8 @@ def next_episode(book_slug: str, made: set[str]) -> dict[str, Any]:
     for ep in episodes(book_slug):
         counts.setdefault(ep["chapter_id"], 0)
         counts[ep["chapter_id"]] += ep["id"] in made
-    return min(todo, key=lambda ep: counts[ep["chapter_id"]])
+    scores = scores or {}
+    return min(todo, key=lambda ep: (counts[ep["chapter_id"]], -scores.get(ep["id"], 0.0)))
 
 
 def adhoc_episode(topic: str, idea: str, number: int) -> dict[str, Any]:

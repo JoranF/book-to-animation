@@ -141,7 +141,7 @@ def _esc(path: Path) -> str:
 
 def render(scenes: list[dict[str, Path | None]], times: list[tuple[float, float]],
            voice: Path, words: list[dict[str, Any]], music: Path | None,
-           work: Path, dest: Path, crt: bool = True) -> Path:
+           work: Path, dest: Path, crt: bool = True, sfx: Path | None = None) -> Path:
     work.mkdir(parents=True, exist_ok=True)
     total = times[-1][1]
 
@@ -165,12 +165,20 @@ def render(scenes: list[dict[str, Path | None]], times: list[tuple[float, float]
     inputs = ["-i", str(silent), "-loop", "1", "-i", str(scanlines(work / "scanlines.png")),
               "-i", str(voice)]
     fade = f"afade=t=out:st={max(total - 1.2, 0):.2f}:d=1.2"
+    # voice (input 2), then optional music and sound effects, mixed under the voice
+    beds, labels = [], []
     if music:
         inputs += ["-stream_loop", "-1", "-i", str(music)]
+        beds.append(f"[{2 + len(beds) + 1}:a]aresample=48000,volume={config.MUSIC_VOLUME},afade=t=in:d=0.4[mu]")
+        labels.append("[mu]")
+    if sfx:
+        inputs += ["-i", str(sfx)]
+        beds.append(f"[{2 + len(beds) + 1}:a]aresample=48000,apad[fx]")
+        labels.append("[fx]")
+    if beds:
         audio = (
-            f"[2:a]aresample=48000,apad[vo];"
-            f"[3:a]aresample=48000,volume={config.MUSIC_VOLUME},afade=t=in:d=0.4[mu];"
-            f"[vo][mu]amix=inputs=2:duration=first:normalize=0,{fade},"
+            "[2:a]aresample=48000,apad[vo];" + ";".join(beds) + ";"
+            f"[vo]{''.join(labels)}amix=inputs={1 + len(labels)}:duration=first:normalize=0,{fade},"
             "loudnorm=I=-14:TP=-1.5:LRA=11[a]"
         )
     else:

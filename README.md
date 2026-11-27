@@ -100,6 +100,60 @@ or `"next"`; or `"topic"` and `"idea"` for a free topic), `GET /api/shorts`,
 `GET /api/shorts/{id}`, `GET /files/{id}/short.mp4`,
 `PATCH /api/shorts/{id}/feedback`, and the Studio contract below.
 
+## Sound effects
+
+`b2a/sfx.py` makes retro 8-bit sound effects in code with a Python port of
+the sfxr synth from [jsfxr](https://github.com/chr15m/jsfxr) (public
+domain). Nine kinds (sting, whoosh, blip, jump, thud, laugh, no, down, chime),
+three seeded variants each, cached in `DATA_DIR/sfx/`. The editor places them
+from the script: a sting on the hook, a soft whoosh on every cut, a sound for
+the listener's reaction (startle = jump, facepalm = thud, laugh, shake head,
+slump or shrug) and a chime on the last line, at most two per scene.
+`meta.json` lists which kinds a Short used, so the analytics can compare.
+`SFX_VOLUME` (default 0.25, 0 = off), `SFX_VARY=0` keeps one variant per kind.
+`python -m b2a.cli sfx` makes the whole library to listen to.
+
+## Music (ACE-Step on the GPU)
+
+The script writer picks a `music_mood` (curious, tense, warm, playful,
+melancholy, triumphant). With `ACESTEP_URL` set, the music comes from
+[ACE-Step 1.5](https://github.com/ace-step/ACE-Step-1.5) (open model, MIT),
+running as its own Dokploy Compose app on the GPU: `musicgen/docker-compose.yml`.
+Every mood gets a prompt in the late-90s console style, instrumental, with a
+fixed tempo and key. Tracks are kept in `DATA_DIR/music/<mood>/` and reused
+once a mood has `MUSIC_PER_MOOD` tracks (default 4), so the GPU only works
+while the library fills. `python -m b2a.cli music` fills it in one go.
+If ACE-Step is missing or fails, the chiptune made in code is used, so music
+never stops a Short. Tracks in `assets/music/` still win over both.
+
+| Variable | What |
+| --- | --- |
+| `ACESTEP_URL` | `http://b2a-acestep:8001` (the compose app, over dokploy-network) |
+| `ACESTEP_API_KEY` | Same random string as in the compose app |
+| `MUSIC_BACKEND` | `auto` (default) or `chiptune` to switch ACE-Step off |
+| `MUSIC_PER_MOOD`, `ACESTEP_TIMEOUT` | Library size per mood (4), seconds per track (900) |
+
+The server needs the NVIDIA driver and the NVIDIA Container Toolkit
+(`nvidia-smi` and `docker run --rm --gpus all ubuntu nvidia-smi` must work).
+
+## Trend research
+
+`b2a/trends.py` follows the workflow of the ScrapeCreators "trend-discovery"
+and "outlier-post-finder" skills: search a few niche queries (`trends` in
+`book.json`), keep the numbers, score every post by its lift over the median
+of the same search, and let Claude write a brief: topics, hook patterns,
+formats, viewer problems, what to avoid, and a 0-10 trend fit for every
+planned episode. Sources: YouTube via yt-dlp and Reddit top of the week (free),
+plus TikTok and YouTube search through ScrapeCreators when
+`SCRAPECREATORS_API_KEY` is set (about 1 credit per search). A source that
+fails is skipped and noted.
+
+The brief (kept 14 days, `TRENDS_MAX_AGE_DAYS`) goes into the script prompt
+("use what fits, never copy a hook"), and "next episode" picks the
+best-fitting episode inside the chapter whose turn it is. `meta.json` records
+which brief a Short was written with. Run it weekly:
+`python -m b2a.cli trends`, or `POST /api/trends` (then `GET /api/trends`).
+
 ## Studio: one dashboard for every pipeline
 
 `studio/` is a second, small app (its own Docker image, `studio/Dockerfile`,
@@ -138,7 +192,8 @@ Run it locally: `uvicorn studio.app:app --port 8001`.
 
 `meta.json` stores what we want to learn from per video: episode, chapter,
 format, topic, hook, hook
-type, length, word count, scene count, sets used, voice and cost, plus empty
+type, length, word count, scene count, sets used, voice, music mood and
+source, sound effects, trend brief and cost, plus empty
 `youtube` and `analytics` blocks. The upload and analytics steps (later) fill
 those through `PATCH /api/shorts/{id}/feedback`. Whatever is written to
 `data/learnings.md` is given to the script writer on every new Short.

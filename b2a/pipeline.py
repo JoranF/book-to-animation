@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from . import config, llm, plan as plan_mod, render, script as script_mod, visuals, voice as voice_mod
+from . import config, llm, plan as plan_mod, render, script as script_mod, sfx, trends, visuals, voice as voice_mod
 
 
 def shorts_dir() -> Path:
@@ -62,7 +62,7 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     if state.get("episode"):                       # continuing an earlier run
         episode = state["episode"]
     elif episode_id == "next":
-        episode = plan_mod.next_episode(book_slug, made_episodes(book_slug))
+        episode = plan_mod.next_episode(book_slug, made_episodes(book_slug), trends.episode_scores(book_slug))
     elif episode_id:
         episode = plan_mod.find_episode(book_slug, episode_id)
     elif topic:
@@ -84,7 +84,10 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     if script is None:
         before = dict(llm.usage)
         avoid = [m["hook"] for m in earlier[:15] if m.get("hook")]
-        script = script_mod.write_script(book, episode, script_mod.load_learnings(), avoid)
+        trend = trends.latest(book_slug)
+        state["trend_brief"] = trend["date"] if trend else None
+        script = script_mod.write_script(book, episode, script_mod.load_learnings(), avoid,
+                                         trends.prompt_text(trend))
         state["tokens"] = {k: llm.usage[k] - before[k] for k in before}
     script = script_mod.validate(script, book)
     _save(job / "script.json", script)
@@ -103,10 +106,12 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
 
     progress("visuals")
     scenes = visuals.make_visuals(script, times, job)
-    music = visuals.make_music(job, total, short_id)
+    music, music_info = visuals.make_music(job, total, short_id, script.get("music_mood"))
+    effects, sfx_used = sfx.make_track(script, times, total, job / "sfx.wav", short_id)
 
     progress("render")
-    video = render.render(scenes, times, voice, words, music, job / "work", job / "short.mp4")
+    video = render.render(scenes, times, voice, words, music, job / "work", job / "short.mp4",
+                          sfx=effects)
     render.thumbnail(video, job / "thumb.jpg")
 
     meta = {
@@ -132,6 +137,10 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
                   else f"piper:{Path(config.PIPER_MODEL).stem}#{config.PIPER_SPEAKER}"),
         "speakers": sorted({voice_mod.speaker_of(s) for s in script["scenes"]}),
         "visuals": "blender",
+        # creative choices, so the analytics loop can compare them later
+        "music": music_info,
+        "sfx": sorted(set(sfx_used)),
+        "trend_brief": state.get("trend_brief"),
         "script_model": config.SCRIPT_MODEL if state.get("tokens") else "manual",
         "script_tokens": state.get("tokens"),
         "estimated_cost_usd": estimate_cost(script, state.get("tokens"), state["voice"] or "piper"),

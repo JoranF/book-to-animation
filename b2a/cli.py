@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from . import pipeline, plan as plan_mod, script as script_mod
+from . import music, pipeline, plan as plan_mod, script as script_mod, sfx, trends
 
 
 def main() -> None:
@@ -23,6 +23,11 @@ def main() -> None:
     episodes.add_argument("--book", default="courage-to-be-disliked")
     plan = sub.add_parser("plan", help="let Claude draft an episode plan for a book")
     plan.add_argument("--book", required=True)
+    trend = sub.add_parser("trends", help="research what works in the niche now (run weekly)")
+    trend.add_argument("--book", default="courage-to-be-disliked")
+    sub.add_parser("sfx", help="make the retro sound effect library")
+    tracks = sub.add_parser("music", help="fill the ACE-Step music library (needs ACESTEP_URL)")
+    tracks.add_argument("--mood", action="append", choices=list(music.MOODS))
     args = parser.parse_args()
 
     if args.cmd == "make":
@@ -36,6 +41,19 @@ def main() -> None:
         made = pipeline.made_episodes(args.book)
         for ep in plan_mod.episodes(args.book):
             print(f"{'x' if ep['id'] in made else ' '} {ep['id']}  {ep['format']:<12} {ep['hook']}")
+    elif args.cmd == "trends":
+        result = trends.run(args.book)
+        print(result.get("summary", ""))
+        print(f"{result['post_count']} posts from {', '.join(result['sources'])}; "
+              f"skipped: {'; '.join(result['errors']) or 'none'}")
+    elif args.cmd == "sfx":
+        for path in sfx.build_library():
+            print(path)
+    elif args.cmd == "music":
+        if not music.acestep_enabled():
+            parser.error("set ACESTEP_URL to the ACE-Step service first")
+        for path in music.fill_library(args.mood):
+            print(path)
     elif args.cmd == "plan":
         path = plan_mod.plan_path(args.book)
         if path.exists():

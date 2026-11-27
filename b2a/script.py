@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import config, llm, plan as plan_mod, stage as stage_mod
+from . import config, llm, music, plan as plan_mod, stage as stage_mod
 from .voice import strip_tags
 
 SYSTEM = """You write scripts for a YouTube Shorts channel that explains ideas \
@@ -60,6 +60,7 @@ Return ONLY JSON:
 "hook_type": "question|bold_claim|contradiction|story|you_statement", \
 "description": "2 sentence YouTube description, may name the book", \
 "hashtags": ["#shorts", "..."], \
+"music_mood": "one of {moods}", \
 "scenes": [{{"narration": "...", "speaker": "narrator", "image": "...", "stage": {{...}}}}]}}"""
 
 
@@ -97,11 +98,13 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
     script.setdefault("hook_type", "unknown")
     script.setdefault("description", "")
     script.setdefault("hashtags", ["#shorts"])
+    if script.get("music_mood") not in music.MOODS:
+        script.pop("music_mood", None)            # the editor picks one
     return script
 
 
 def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str = "",
-                 avoid: list[str] | None = None) -> dict[str, Any]:
+                 avoid: list[str] | None = None, trends_brief: str = "") -> dict[str, Any]:
     """Write the script for one episode (see plan.py for what an episode is)."""
     characters = "\n".join(
         f'- "{key}": {c["prompt"]}' for key, c in book["characters"].items()
@@ -128,7 +131,14 @@ def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str =
             "\nWhat worked and did not work on this channel so far "
             f"(use it):\n{learnings}\n"
         )
-    system = SYSTEM.format(characters=characters, guide=stage_mod.GUIDE)
+    if trends_brief:
+        user += (
+            "\nWhat is working in this niche on Shorts and TikTok right now (research "
+            "from the last weeks). Use what fits this one idea; never copy a hook or "
+            f"a title:\n{trends_brief}\n"
+        )
+    system = SYSTEM.format(characters=characters, guide=stage_mod.GUIDE,
+                           moods="|".join(music.MOODS))
     messages: list[dict[str, Any]] = [{"role": "user", "content": user}]
     error: Exception | None = None
     for _ in range(3):
