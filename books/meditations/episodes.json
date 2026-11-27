@@ -1,0 +1,149 @@
+{
+ "book": "meditations",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "med1",
+   "title": "Book 1: You control your mind, not the world",
+   "episodes": [
+    {
+     "id": "med1-01",
+     "title": "It's not the event, it's your story",
+     "hook": "Nothing that happened today hurt you. Your story about it did.",
+     "angle": "Events are neutral; the damage comes from the judgment we add. Example: two people get the same 'we need to talk' text, one panics, one shrugs.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "med1-02",
+     "title": "The traffic jam test",
+     "hook": "The traffic jam isn't ruining your morning. You are.",
+     "angle": "You cannot move the cars, only your reaction. Example: a driver honking for twenty minutes arrives exactly as late as the one who put on a podcast.",
+     "format": "mini_story"
+    },
+    {
+     "id": "med1-03",
+     "title": "Take away the opinion",
+     "hook": "Delete one word from your complaint and the problem shrinks.",
+     "angle": "Remove the label 'I've been wronged' and the harm loses its grip. Example: rewriting 'my boss disrespected me' as 'my boss sent a short email'.",
+     "format": "challenge"
+    },
+    {
+     "id": "med1-04",
+     "title": "The fortress inside",
+     "hook": "There's one room nobody can enter without your permission.",
+     "angle": "Your inner judgment is a citadel; insults and bad luck stay outside unless you let them in. Example: a referee booed by a full stadium who still calls the game calmly.",
+     "format": "reframe"
+    },
+    {
+     "id": "med1-05",
+     "title": "Is it in your control?",
+     "hook": "Before you worry, ask one question.",
+     "angle": "Sort every worry into 'mine to act on' or 'not mine'. Example: a student who stops refreshing the grades page and starts the next assignment.",
+     "format": "one_question"
+    }
+   ]
+  },
+  {
+   "id": "med2",
+   "title": "Book 2: Other people",
+   "episodes": [
+    {
+     "id": "med2-01",
+     "title": "Expect difficult people",
+     "hook": "You'll meet someone annoying today. Good. Now you're ready.",
+     "angle": "Expecting rudeness in the morning removes the shock later. Example: a barista who mentally prepares for the grumpy regular and ends up laughing at him.",
+     "format": "reframe"
+    },
+    {
+     "id": "med2-02",
+     "title": "They don't know better",
+     "hook": "The person who wronged you thinks they're right.",
+     "angle": "People act on what seems good to them; anger at ignorance is wasted. Example: the coworker who steals your idea genuinely believes he improved it.",
+     "format": "dialogue"
+    },
+    {
+     "id": "med2-03",
+     "title": "The best revenge",
+     "hook": "The best revenge is not becoming like them.",
+     "angle": "Copying someone's cruelty lets them win twice. Example: refusing to answer a nasty group-chat message with an even nastier one.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "med2-04",
+     "title": "Stop needing their applause",
+     "hook": "Imagine doing your best work and nobody ever finds out.",
+     "angle": "Praise adds nothing to a good act, like an emerald doesn't need compliments. Example: a nurse on a night shift nobody will ever thank.",
+     "format": "one_question"
+    }
+   ]
+  },
+  {
+   "id": "med3",
+   "title": "Book 3: Death and time",
+   "episodes": [
+    {
+     "id": "med3-01",
+     "title": "Memento mori",
+     "hook": "You could leave life right now. Let that decide what you do next.",
+     "angle": "Remembering death is not dark, it cuts out the trivial. Example: someone who stops arguing in comment sections after a health scare.",
+     "format": "mini_story"
+    },
+    {
+     "id": "med3-02",
+     "title": "Everyone forgets everyone",
+     "hook": "In a hundred years, nobody will remember your embarrassing moment.",
+     "angle": "Fame and shame both fade fast, so neither is worth your peace. Example: try naming a famous person from 1820.",
+     "format": "challenge"
+    },
+    {
+     "id": "med3-03",
+     "title": "The present is all you have",
+     "hook": "You can only lose this moment. Not your past, not your future.",
+     "angle": "Nobody can lose a life they don't have yet; only the present is real. Example: a gamer who stops grinding for the 'someday' save file and plays the level in front of him.",
+     "format": "reframe"
+    },
+    {
+     "id": "med3-04",
+     "title": "Change is the rule",
+     "hook": "Everything you love is already changing. That's not bad news.",
+     "angle": "The river is never the same; resisting change causes the suffering. Example: a band whose fans hate the new album, then call it a classic ten years later.",
+     "format": "myth_buster"
+    }
+   ]
+  },
+  {
+   "id": "med4",
+   "title": "Book 4: Getting out of bed and doing the work",
+   "episodes": [
+    {
+     "id": "med4-01",
+     "title": "Why get out of bed?",
+     "hook": "You weren't born to lie under a warm blanket.",
+     "angle": "A tree, a bee and an ant all do their job; your job is to be human. Example: snoozing the alarm for the fifth time and the argument that finally gets you up.",
+     "format": "dialogue"
+    },
+    {
+     "id": "med4-02",
+     "title": "Do the next right thing",
+     "hook": "Stop planning the perfect life. Do the next right thing.",
+     "angle": "Focus on the single act in front of you, done well, like it's your last. Example: a messy room cleaned one drawer at a time.",
+     "format": "challenge"
+    },
+    {
+     "id": "med4-03",
+     "title": "The obstacle is the way",
+     "hook": "What stands in your way becomes the way.",
+     "angle": "An obstacle can be turned into training for the exact virtue you need. Example: a canceled flight turned into the day you finally finish the book.",
+     "format": "mini_story"
+    },
+    {
+     "id": "med4-04",
+     "title": "Talk less about being good",
+     "hook": "Stop arguing about what a good person is. Be one.",
+     "angle": "Debate is cheap; action is the proof. Example: someone posting long threads about kindness while ignoring a friend's text.",
+     "format": "myth_buster"
+    }
+   ]
+  }
+ ]
+}

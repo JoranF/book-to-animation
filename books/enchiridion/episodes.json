@@ -1,0 +1,135 @@
+{
+ "book": "enchiridion",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "enc1",
+   "title": "Part 1: What's up to you",
+   "episodes": [
+    {
+     "id": "enc1-01",
+     "title": "The two lists",
+     "hook": "Everything in your life fits on one of two lists.",
+     "angle": "Things up to you (your choices) and things not up to you (others, results). Peace starts with sorting. Example: a job interview, where your prep is yours and the hiring decision is not.",
+     "format": "reframe"
+    },
+    {
+     "id": "enc1-02",
+     "title": "Why you're anxious",
+     "hook": "Anxiety is wanting something you don't control.",
+     "angle": "Suffering comes from attaching desire to things outside our power. Example: refreshing your phone for a reply that only they can send.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "enc1-03",
+     "title": "It's not the thing",
+     "hook": "It's not things that upset you. It's what you believe about them.",
+     "angle": "Judgments disturb us, not events. Example: a spilled coffee that ruins one person's day and makes another laugh.",
+     "format": "dialogue"
+    },
+    {
+     "id": "enc1-04",
+     "title": "Want what happens",
+     "hook": "Stop wishing things go your way. Wish they go the way they go.",
+     "angle": "Aligning desire with reality removes disappointment. Example: rain on the day of the picnic turned into a board-game afternoon.",
+     "format": "challenge"
+    }
+   ]
+  },
+  {
+   "id": "enc2",
+   "title": "Part 2: Loss and attachment",
+   "episodes": [
+    {
+     "id": "enc2-01",
+     "title": "'I lost it' vs 'I gave it back'",
+     "hook": "Never say 'I lost it'. Say 'I gave it back'.",
+     "angle": "Everything is borrowed, so losing it is returning it. Example: a stolen bike, a broken phone, an ended friendship.",
+     "format": "reframe"
+    },
+    {
+     "id": "enc2-02",
+     "title": "Start with a cracked cup",
+     "hook": "Practice on small losses before life gives you big ones.",
+     "angle": "Train your calm on small things first. Example: staying calm about a cracked mug as practice for a real setback.",
+     "format": "challenge"
+    },
+    {
+     "id": "enc2-03",
+     "title": "Love it as it is",
+     "hook": "If you love a mug, remember it's a mug.",
+     "angle": "Remind yourself what things are, so their end doesn't crush you. Example: enjoying your first car while knowing it won't last forever.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "enc3",
+   "title": "Part 3: Other people and reputation",
+   "episodes": [
+    {
+     "id": "enc3-01",
+     "title": "Let them think you're a fool",
+     "hook": "If you want to grow, be okay with looking stupid.",
+     "angle": "Progress requires letting others think you're foolish. Example: the beginner at the gym using the lightest weights while others stare.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "enc3-02",
+     "title": "Someone insulted you?",
+     "hook": "Nobody can insult you without your help.",
+     "angle": "An insult only lands if you agree with it. Example: someone calls you bald when you have a full head of hair, and nothing happens.",
+     "format": "dialogue"
+    },
+    {
+     "id": "enc3-03",
+     "title": "Say less about yourself",
+     "hook": "The more you talk about your wins, the smaller they get.",
+     "angle": "Don't boast or lecture; show it through action. Example: the friend who quietly runs every morning versus the one who posts about running.",
+     "format": "reframe"
+    },
+    {
+     "id": "enc3-04",
+     "title": "Don't judge, describe",
+     "hook": "He doesn't drink too much. He drinks a lot. That's all you know.",
+     "angle": "Judge actions only by facts, not assumptions. Example: a coworker who leaves early may have a sick child.",
+     "format": "one_question"
+    }
+   ]
+  },
+  {
+   "id": "enc4",
+   "title": "Part 4: Life is a play",
+   "episodes": [
+    {
+     "id": "enc4-01",
+     "title": "You didn't pick the role",
+     "hook": "You didn't choose your role in life. You choose how well you play it.",
+     "angle": "We are actors in a play; the casting isn't ours, the acting is. Example: the extra in a movie who makes three seconds unforgettable.",
+     "format": "reframe"
+    },
+    {
+     "id": "enc4-02",
+     "title": "Life is a banquet",
+     "hook": "Treat life like a dinner party. Wait for the plate to reach you.",
+     "angle": "Take what comes politely, don't grab what passed or isn't here yet. Example: the friend who waits his turn and still gets the best slice.",
+     "format": "mini_story"
+    },
+    {
+     "id": "enc4-03",
+     "title": "Start now, not later",
+     "hook": "How long will you wait before you demand the best of yourself?",
+     "angle": "You're not a child anymore; stop postponing your progress. Example: the person who 'will start Monday' for two years.",
+     "format": "challenge"
+    },
+    {
+     "id": "enc4-04",
+     "title": "The Olympic athlete",
+     "hook": "You want to win the Olympics? Then count the cost first.",
+     "angle": "Before starting anything, look at what it truly demands. Example: someone who wants to become a writer but doesn't want rejection letters.",
+     "format": "one_question"
+    }
+   ]
+  }
+ ]
+}

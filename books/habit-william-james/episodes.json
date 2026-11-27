@@ -1,0 +1,135 @@
+{
+ "book": "habit-william-james",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "hab1",
+   "title": "Part 1: You are your habits",
+   "episodes": [
+    {
+     "id": "hab1-01",
+     "title": "Walking bundle of habits",
+     "hook": "Most of what you did today, you didn't decide. Your habits did.",
+     "angle": "Most daily actions run on habit, not choice. Example: driving home and not remembering the trip.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "hab1-02",
+     "title": "Your brain is clay",
+     "hook": "Your brain is like paper that remembers every fold.",
+     "angle": "Each repetition makes the next one easier, for good or bad habits. Example: folding a letter along the same crease.",
+     "format": "reframe"
+    },
+    {
+     "id": "hab1-03",
+     "title": "Character sets like plaster",
+     "hook": "By thirty, your character starts to set like plaster.",
+     "angle": "Habits harden over time, so early choices matter more. Example: two friends at 20 and at 35, one who kept the reading habit.",
+     "format": "mini_story"
+    },
+    {
+     "id": "hab1-04",
+     "title": "Habits free your mind",
+     "hook": "Hating routine? Routine is what lets you think.",
+     "angle": "Automating small things frees attention for important ones. Example: the person who lays out clothes and saves morning energy.",
+     "format": "dialogue"
+    }
+   ]
+  },
+  {
+   "id": "hab2",
+   "title": "Part 2: Starting a habit",
+   "episodes": [
+    {
+     "id": "hab2-01",
+     "title": "Start strong",
+     "hook": "Start a new habit with as much force as you can.",
+     "angle": "Launch with a strong, public, all-in decision. Example: telling five friends you're running the race and booking the ticket.",
+     "format": "challenge"
+    },
+    {
+     "id": "hab2-02",
+     "title": "Never allow an exception",
+     "hook": "'Just this once' is how every habit dies.",
+     "angle": "Each exception undoes many wins, like dropping a ball of yarn. Example: skipping the gym 'just once' on Monday.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "hab2-03",
+     "title": "Act on it now",
+     "hook": "A good intention you don't act on makes you worse, not better.",
+     "angle": "Feeling inspired without acting trains you to do nothing. Example: watching motivation videos for an hour instead of working.",
+     "format": "reframe"
+    },
+    {
+     "id": "hab2-04",
+     "title": "The first chance",
+     "hook": "Take the very first chance to act on your decision.",
+     "angle": "Seize the first opportunity to act on each resolution. Example: deciding to call your dad more and calling him right now.",
+     "format": "challenge"
+    }
+   ]
+  },
+  {
+   "id": "hab3",
+   "title": "Part 3: Training the will",
+   "episodes": [
+    {
+     "id": "hab3-01",
+     "title": "Do one hard thing daily",
+     "hook": "Do one small useless hard thing every day.",
+     "angle": "Practising discomfort keeps your will ready for real tests. Example: a cold shower, taking the stairs.",
+     "format": "challenge"
+    },
+    {
+     "id": "hab3-02",
+     "title": "Insurance for your will",
+     "hook": "Discipline is insurance you pay for before you need it.",
+     "angle": "Daily effort is like a premium paid; when hard times come, you're covered. Example: the person who keeps calm in a crisis because she's done hard things before.",
+     "format": "reframe"
+    },
+    {
+     "id": "hab3-03",
+     "title": "The drunk who doesn't count",
+     "hook": "'This one doesn't count' — but your nerves are counting.",
+     "angle": "Every action is recorded by the body, even ones you dismiss. Example: the smoker who says each cigarette is the last one.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "hab4",
+   "title": "Part 4: Changing who you are",
+   "episodes": [
+    {
+     "id": "hab4-01",
+     "title": "Act as if",
+     "hook": "Want to feel confident? Act confident first.",
+     "angle": "Action shapes feeling, not only the other way around. Example: standing tall before a presentation.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "hab4-02",
+     "title": "Small daily choices",
+     "hook": "You're not ruined by one bad day. You're built by ordinary ones.",
+     "angle": "Character is the sum of small daily choices. Example: a student who studies 20 minutes every day versus one who crams.",
+     "format": "reframe"
+    },
+    {
+     "id": "hab4-03",
+     "title": "Wake up on time",
+     "hook": "The fight for your life starts with the alarm clock.",
+     "angle": "The first decision of the day trains every other. Example: two people, one who gets up at the first alarm.",
+     "format": "dialogue"
+    },
+    {
+     "id": "hab4-04",
+     "title": "Nobody is born disciplined",
+     "hook": "Disciplined people aren't stronger than you. They just started earlier.",
+     "angle": "Discipline is a habit you build, not a talent. Example: the friend who seems 'naturally' disciplined but built it at age 15.",
+     "format": "one_question"
+    }
+   ]
+  }
+ ]
+}

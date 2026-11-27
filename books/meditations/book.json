@@ -1,0 +1,35 @@
+{
+  "slug": "meditations",
+  "title": "Meditations",
+  "authors": "Marcus Aurelius",
+  "school": "Stoicism",
+  "public_domain": true,
+  "summary": "The private notebook of a Roman emperor reminding himself how to live: you control your judgments, not events; other people's rudeness is their problem; death is near so act well today; do your duty without needing praise; everything changes and nothing is worth panic.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "marcus aurelius",
+      "meditations stoicism",
+      "stoic mindset",
+      "control what you can",
+      "stoicism shorts",
+      "memento mori"
+    ],
+    "subreddits": [
+      "Stoicism",
+      "philosophy",
+      "selfimprovement",
+      "getdisciplined",
+      "DecidingToBeBetter"
+    ]
+  }
+}

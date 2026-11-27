@@ -1,0 +1,35 @@
+{
+  "slug": "the-prince",
+  "title": "The Prince",
+  "authors": "Niccolo Machiavelli",
+  "school": "Political philosophy and power",
+  "public_domain": true,
+  "summary": "A Renaissance handbook on how rulers gain and keep power: be realistic about how people act rather than how they should act, it is safer to be feared than loved if you can't be both, appear virtuous but act as needed, rely on yourself not on luck or allies, and prepare in calm times for the storm.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "machiavelli the prince",
+      "dark psychology",
+      "power dynamics",
+      "how to gain respect",
+      "stop being too nice",
+      "philosophy shorts"
+    ],
+    "subreddits": [
+      "philosophy",
+      "selfimprovement",
+      "socialskills",
+      "history",
+      "AskMen"
+    ]
+  }
+}

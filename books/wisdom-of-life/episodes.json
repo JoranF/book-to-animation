@@ -1,0 +1,128 @@
+{
+ "book": "wisdom-of-life",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "wol1",
+   "title": "Part 1: What you are, what you have, what you seem",
+   "episodes": [
+    {
+     "id": "wol1-01",
+     "title": "Three kinds of wealth",
+     "hook": "There are three kinds of wealth. Most people chase the weakest one.",
+     "angle": "What you are (health, mind) matters more than what you have, and both matter more than reputation. Example: a rich man with a bored mind versus a poor reader with a rich one.",
+     "format": "reframe"
+    },
+    {
+     "id": "wol1-02",
+     "title": "Health first",
+     "hook": "A healthy beggar is happier than a sick king.",
+     "angle": "Without health no other good counts. Example: someone who sacrifices sleep for money, then spends the money on doctors.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "wol1-03",
+     "title": "The boring rich",
+     "hook": "Money can't fix an empty head.",
+     "angle": "An inner life protects you from boredom better than wealth. Example: the lottery winner who's bored within a year.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "wol2",
+   "title": "Part 2: Other people's opinions",
+   "episodes": [
+    {
+     "id": "wol2-01",
+     "title": "Opinions are poison",
+     "hook": "You worry what people think. They barely think of you.",
+     "angle": "Valuing others' opinion is a madness that causes much unhappiness. Example: changing outfits three times for people who won't remember it.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "wol2-02",
+     "title": "Pride vs vanity",
+     "hook": "Pride lives inside you. Vanity lives in other people's eyes.",
+     "angle": "Pride is internal and stable; vanity depends on applause. Example: two musicians, one who plays for himself and one who checks views.",
+     "format": "dialogue"
+    },
+    {
+     "id": "wol2-03",
+     "title": "Politeness is a mask",
+     "hook": "Politeness is an air cushion. Empty, but it softens every bump.",
+     "angle": "Courtesy costs little and avoids pointless conflict. Example: holding the door for someone you don't like.",
+     "format": "reframe"
+    },
+    {
+     "id": "wol2-04",
+     "title": "Don't show your hand",
+     "hook": "Tell your friend nothing you'd hide from your enemy.",
+     "angle": "Secrets can turn against you; be careful what you share. Example: the group chat screenshot that went public.",
+     "format": "challenge"
+    }
+   ]
+  },
+  {
+   "id": "wol3",
+   "title": "Part 3: Solitude",
+   "episodes": [
+    {
+     "id": "wol3-01",
+     "title": "Love being alone",
+     "hook": "If you can't enjoy being alone, you'll accept bad company.",
+     "angle": "Those who can't bear solitude tolerate anyone. Example: staying in a draining friendship because the alternative is a quiet Friday.",
+     "format": "one_question"
+    },
+    {
+     "id": "wol3-02",
+     "title": "Smart people need less company",
+     "hook": "The richer your mind, the less you need other people to fill it.",
+     "angle": "A full inner life makes solitude a pleasure, not a punishment. Example: a kid content building Lego alone for hours.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "wol3-03",
+     "title": "The porcupines",
+     "hook": "Why do people who get close always end up hurting each other?",
+     "angle": "Like porcupines in winter, people need warmth but get pricked when too close; politeness is the right distance. Example: roommates who were best friends until they lived together.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "wol4",
+   "title": "Part 4: Desire and happiness",
+   "episodes": [
+    {
+     "id": "wol4-01",
+     "title": "Avoid pain, don't chase pleasure",
+     "hook": "Stop chasing happiness. Start avoiding misery.",
+     "angle": "A wise person aims at a painless life, not a thrilling one. Example: the person who skips one wild night to avoid three bad days.",
+     "format": "reframe"
+    },
+    {
+     "id": "wol4-02",
+     "title": "Want less",
+     "hook": "Every new desire is a new way to be unhappy.",
+     "angle": "Our happiness depends on the ratio between what we want and what we get. Example: someone happy with an old phone until he sees the new model.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "wol4-03",
+     "title": "Boredom and pain",
+     "hook": "Life swings between pain and boredom. You decide where you land.",
+     "angle": "Need brings pain, comfort brings boredom; a busy mind escapes both. Example: someone who finally gets a free weekend and is miserable by Sunday.",
+     "format": "dialogue"
+    },
+    {
+     "id": "wol4-04",
+     "title": "Today is the only day",
+     "hook": "This exact day will never come back. Act like it.",
+     "angle": "Value the present instead of chasing the future. Example: a parent on a phone at the park while the kid looks for them.",
+     "format": "challenge"
+    }
+   ]
+  }
+ ]
+}

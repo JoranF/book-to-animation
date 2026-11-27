@@ -1,0 +1,35 @@
+{
+  "slug": "beyond-good-and-evil",
+  "title": "Beyond Good and Evil",
+  "authors": "Friedrich Nietzsche",
+  "school": "Existential philosophy",
+  "public_domain": true,
+  "summary": "Nietzsche attacks easy certainties: philosophers' 'truths' are often hidden personal needs, morality has a history and is not fixed, the herd fears anything that stands out, and a free spirit questions everything, accepts struggle, creates their own values and becomes who they are.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "nietzsche",
+      "beyond good and evil",
+      "become who you are",
+      "existentialism",
+      "stop following the crowd",
+      "philosophy shorts"
+    ],
+    "subreddits": [
+      "philosophy",
+      "Nietzsche",
+      "existentialism",
+      "selfimprovement",
+      "DecidingToBeBetter"
+    ]
+  }
+}

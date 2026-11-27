@@ -1,0 +1,35 @@
+{
+  "slug": "on-the-shortness-of-life",
+  "title": "On the Shortness of Life",
+  "authors": "Seneca",
+  "school": "Stoicism",
+  "public_domain": true,
+  "summary": "A letter by the Roman philosopher Seneca: life is not short, we waste it. We guard our money but give away our time to everyone; we postpone living; busy people are the least alive; the past, studied and reflected on, is the part of life nobody can take from us.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "seneca shortness of life",
+      "stop wasting time",
+      "life is short",
+      "stoic time management",
+      "procrastination philosophy",
+      "stoicism shorts"
+    ],
+    "subreddits": [
+      "Stoicism",
+      "productivity",
+      "getdisciplined",
+      "selfimprovement",
+      "philosophy"
+    ]
+  }
+}

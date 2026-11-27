@@ -1,0 +1,35 @@
+{
+  "slug": "art-of-war",
+  "title": "The Art of War",
+  "authors": "Sun Tzu",
+  "school": "Strategy",
+  "public_domain": true,
+  "summary": "An ancient Chinese treatise on strategy: the best victory is won without fighting, know yourself and your opponent, win first and then fight, use deception, avoid strength and attack weakness, adapt like water, and never let anger or pride make your decisions.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "sun tzu art of war",
+      "strategy mindset",
+      "win without fighting",
+      "know your enemy",
+      "discipline",
+      "philosophy shorts"
+    ],
+    "subreddits": [
+      "philosophy",
+      "selfimprovement",
+      "getdisciplined",
+      "Entrepreneur",
+      "history"
+    ]
+  }
+}

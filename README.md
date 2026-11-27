@@ -32,6 +32,18 @@ challenge, reframe). "Next" takes the first episode without a Short and lets
 the chapters take turns. The script writer also gets the hooks of the last 15
 Shorts and is told to build this one differently. A free topic still works.
 
+### Books
+
+Nine books have a plan: *The Courage to Be Disliked* (45 episodes) and eight
+public-domain classics, about 15 episodes each: *Meditations* (Marcus
+Aurelius), *On the Shortness of Life* (Seneca), *The Enchiridion*
+(Epictetus), *The Prince* (Machiavelli), *The Art of War* (Sun Tzu), *Beyond
+Good and Evil* (Nietzsche), *The Wisdom of Life* (Schopenhauer) and *Habit*
+(William James). Public-domain books carry no takedown risk, modern ones do.
+`GET /api/books` lists them with how many episodes are made. `POST
+/api/shorts` with `"book": "auto"` picks the book with the fewest Shorts that
+still has episodes left, so an autopilot takes turns between books.
+
 For a new book: add `books/<slug>/book.json`, run
 `python -m b2a.cli plan --book <slug>`, read the plan through and commit it.
 

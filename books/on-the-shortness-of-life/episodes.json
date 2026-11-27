@@ -1,0 +1,142 @@
+{
+ "book": "on-the-shortness-of-life",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "sol1",
+   "title": "Part 1: Life is long if you know how to use it",
+   "episodes": [
+    {
+     "id": "sol1-01",
+     "title": "Life isn't short",
+     "hook": "Life isn't short. You're just spending it badly.",
+     "angle": "We are given enough time; we waste a lot of it. Example: someone who 'has no time' but has 6 hours of screen time.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "sol1-02",
+     "title": "The time thief",
+     "hook": "You'd never let a stranger take your money. You let them take your time.",
+     "angle": "People guard their wallets but give away hours without thinking. Example: saying yes to a pointless meeting you'd never pay to attend.",
+     "format": "reframe"
+    },
+    {
+     "id": "sol1-03",
+     "title": "Count your real years",
+     "hook": "You might be forty, but how many years did you actually live?",
+     "angle": "Subtract the hours lost to other people's demands, worry and distraction. Example: a quick count of a typical week's lost hours.",
+     "format": "one_question"
+    },
+    {
+     "id": "sol1-04",
+     "title": "The busy trap",
+     "hook": "Being busy is the laziest way to waste your life.",
+     "angle": "Busyness feels important but leaves no room to live. Example: a manager who answers emails at his daughter's recital.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "sol2",
+   "title": "Part 2: Stop postponing",
+   "episodes": [
+    {
+     "id": "sol2-01",
+     "title": "'When I retire'",
+     "hook": "'I'll live when I retire' is the most dangerous plan you have.",
+     "angle": "Postponing life assumes a future nobody promised you. Example: the person saving the trip to Japan for 'later', every year.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "sol2-02",
+     "title": "Tomorrow steals today",
+     "hook": "The biggest waste of time is waiting for tomorrow.",
+     "angle": "Expectation of the future makes us lose the present. Example: scrolling while 'waiting for motivation' to start the project.",
+     "format": "dialogue"
+    },
+    {
+     "id": "sol2-03",
+     "title": "Live like it's borrowed",
+     "hook": "Your time isn't yours. It's on loan, and nobody told you the due date.",
+     "angle": "Treat each day as limited and it gets valuable. Example: how differently you spend your last day before moving abroad.",
+     "format": "reframe"
+    },
+    {
+     "id": "sol2-04",
+     "title": "Start one thing today",
+     "hook": "Pick the thing you've been 'about to start' for a year. Start it tonight.",
+     "angle": "Living begins the moment you stop rehearsing. Example: writing one ugly page of the novel instead of planning it.",
+     "format": "challenge"
+    }
+   ]
+  },
+  {
+   "id": "sol3",
+   "title": "Part 3: Who you give your days to",
+   "episodes": [
+    {
+     "id": "sol3-01",
+     "title": "Everybody wants a piece of you",
+     "hook": "Look at your calendar. Whose life is it?",
+     "angle": "Many people spend their days serving others' ambitions and their own vanity. Example: a calendar full of things done to impress people you don't like.",
+     "format": "one_question"
+    },
+    {
+     "id": "sol3-02",
+     "title": "Saying no is a skill",
+     "hook": "Every yes to them is a no to yourself.",
+     "angle": "Protecting your time is not selfish, it's the only way to have a life. Example: declining a favour politely and using the hour to call your grandma.",
+     "format": "mini_story"
+    },
+    {
+     "id": "sol3-03",
+     "title": "Fake leisure",
+     "hook": "Your hobby might just be another job.",
+     "angle": "Even 'free time' can be anxious and busy, collecting things or chasing status. Example: a gym session spent filming yourself for likes.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "sol3-04",
+     "title": "The rich who are poor",
+     "hook": "Some of the richest people you know have no time at all.",
+     "angle": "Money bought with all your time is a bad trade. Example: the founder who can afford a beach house he never visits.",
+     "format": "reframe"
+    }
+   ]
+  },
+  {
+   "id": "sol4",
+   "title": "Part 4: The part of life nobody can take",
+   "episodes": [
+    {
+     "id": "sol4-01",
+     "title": "The past is safe",
+     "hook": "Your past is the only thing nobody can take from you.",
+     "angle": "Reflecting on lived time turns it into a possession; busy people never look back. Example: an old man flipping through a photo album versus one who can't remember last year.",
+     "format": "mini_story"
+    },
+    {
+     "id": "sol4-02",
+     "title": "Read the dead",
+     "hook": "You can have a conversation with the smartest people who ever lived. Tonight.",
+     "angle": "Reading great minds adds their years to yours. Example: ten minutes with an old book instead of a feed.",
+     "format": "challenge"
+    },
+    {
+     "id": "sol4-03",
+     "title": "Old age is not proof",
+     "hook": "Grey hair doesn't mean someone lived long. Just that they existed long.",
+     "angle": "Length of life is not the same as amount of life. Example: two ninety-year-olds, one full, one empty.",
+     "format": "dialogue"
+    },
+    {
+     "id": "sol4-04",
+     "title": "The question at the end",
+     "hook": "On your last day, what will you wish you had done with today?",
+     "angle": "Judge today by how it looks from the end. Example: imagining your 80-year-old self watching you today.",
+     "format": "one_question"
+    }
+   ]
+  }
+ ]
+}
