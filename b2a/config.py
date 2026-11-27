@@ -40,6 +40,24 @@ PIPER_LENGTH_SCALE = float(os.environ.get("PIPER_LENGTH_SCALE", "1.18"))
 # --- output --------------------------------------------------------------
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
 MUSIC_VOLUME = float(os.environ.get("MUSIC_VOLUME", "0.16"))
+# Retro sound effects (b2a/sfx.py). 0 turns them off.
+SFX_VOLUME = float(os.environ.get("SFX_VOLUME", "0.25"))
+SFX_VARY = os.environ.get("SFX_VARY", "1") != "0"   # 0 = always the same variant of each sound
+
+# --- music ---------------------------------------------------------------
+# auto: ACE-Step when ACESTEP_URL is set (own GPU service, see musicgen/), else
+# the chiptune composed in code. Generated tracks are kept in a library per
+# mood and reused, so the GPU only works until the library is full.
+MUSIC_BACKEND = os.environ.get("MUSIC_BACKEND", "auto")  # auto | acestep | chiptune
+ACESTEP_URL = os.environ.get("ACESTEP_URL", "").rstrip("/")
+ACESTEP_API_KEY = os.environ.get("ACESTEP_API_KEY", "")
+ACESTEP_TIMEOUT = float(os.environ.get("ACESTEP_TIMEOUT", "900"))   # seconds per track
+MUSIC_PER_MOOD = int(os.environ.get("MUSIC_PER_MOOD", "4"))          # library size per mood
+
+# --- trend research (b2a/trends.py) ---------------------------------------
+# YouTube (yt-dlp) and Reddit are free. With SCRAPECREATORS_API_KEY TikTok and
+# YouTube search are added (about 1 credit per search).
+TRENDS_MAX_AGE_DAYS = int(os.environ.get("TRENDS_MAX_AGE_DAYS", "14"))
 TAIL_SECONDS = 0.5  # silence after the last word
 
 # Rough USD prices for the cost estimate stored with every Short. They are

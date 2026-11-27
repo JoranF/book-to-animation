@@ -13,5 +13,23 @@
       "name": "The Youth",
       "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
     }
+  },
+  "trends": {
+    "queries": [
+      "courage to be disliked",
+      "alfred adler psychology",
+      "stop caring what people think",
+      "people pleasing",
+      "you are not your past",
+      "philosophy shorts",
+      "psychology shorts"
+    ],
+    "subreddits": [
+      "philosophy",
+      "Stoicism",
+      "selfimprovement",
+      "socialanxiety",
+      "getdisciplined"
+    ]
   }
 }

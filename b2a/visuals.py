@@ -56,13 +56,24 @@ def make_visuals(script: dict[str, Any], times: list[tuple[float, float]],
         return list(pool.map(work, range(len(scenes))))
 
 
-def make_music(out_dir: Path, seconds: float, seed_text: str) -> Path:
-    """Use a track from assets/music if there is one, else compose a chiptune."""
+def make_music(out_dir: Path, seconds: float, seed_text: str,
+               mood: str | None = None) -> tuple[Path, dict[str, Any]]:
+    """Background music: a hand-picked track from assets/music if there are any,
+    else an ACE-Step track from the library (made on the GPU when needed), else
+    a chiptune composed in code. Returns the file and what was used."""
     library = sorted((config.ASSETS_DIR / "music").glob("*.mp3")) + sorted((config.ASSETS_DIR / "music").glob("*.wav"))
     seed = zlib.crc32(seed_text.encode())
+    mood = mood if mood in music.MOODS else music.default_mood(seed)
     if library:
-        return library[seed % len(library)]
+        track = library[seed % len(library)]
+        return track, {"source": "assets", "mood": mood, "track": track.name}
+    if music.acestep_enabled():
+        try:
+            track = music.library_track(mood, seed, seconds + 2)
+            return track, {"source": "acestep", "mood": mood, "track": track.name}
+        except Exception as exc:  # noqa: BLE001 - music must never stop a Short
+            print(f"[b2a] ACE-Step music failed, using chiptune: {exc}")
     dest = out_dir / "music.wav"
     if not dest.exists():
         music.make_music(dest, seconds + 2, seed)
-    return dest
+    return dest, {"source": "chiptune", "mood": mood, "track": None}

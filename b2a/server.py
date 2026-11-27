@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, pipeline, plan as plan_mod, script as script_mod
+from . import config, music, pipeline, plan as plan_mod, script as script_mod, trends
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -69,7 +69,44 @@ def short_path(short_id: str, name: str) -> Path:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"ok": True, "claude_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY"))}
+            "elevenlabs_key_set": bool(os.environ.get("ELEVENLABS_API_KEY")),
+            "acestep_url_set": music.acestep_enabled(),
+            "scrapecreators_key_set": bool(os.environ.get("SCRAPECREATORS_API_KEY"))}
+
+
+# --- trend research (weekly; see trends.py) ---
+
+trend_runs: dict[str, dict[str, Any]] = {}
+
+
+def _run_trends(book: str) -> None:
+    try:
+        result = trends.run(book)
+        trend_runs[book] = {"status": "done", "date": result["date"]}
+    except Exception as exc:  # noqa: BLE001 - shown in the API
+        traceback.print_exc()
+        trend_runs[book] = {"status": "failed", "error": str(exc)[:500]}
+
+
+@app.post("/api/trends", dependencies=[Depends(auth)])
+def start_trends(book: str = "courage-to-be-disliked") -> dict[str, Any]:
+    """Start a trend research run in the background (Claude + optional ScrapeCreators credits)."""
+    book = Path(book).name
+    try:
+        script_mod.load_book(book)
+    except FileNotFoundError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    if trend_runs.get(book, {}).get("status") == "running":
+        return trend_runs[book]
+    trend_runs[book] = {"status": "running"}
+    threading.Thread(target=_run_trends, args=(book,), daemon=True).start()
+    return trend_runs[book]
+
+
+@app.get("/api/trends", dependencies=[Depends(auth)])
+def get_trends(book: str = "courage-to-be-disliked") -> dict[str, Any]:
+    book = Path(book).name
+    return {"run": trend_runs.get(book), "brief": trends.latest(book, max_age_days=3650)}
 
 
 @app.post("/api/shorts", dependencies=[Depends(auth)])
@@ -82,7 +119,8 @@ def create_short(body: NewShort) -> dict[str, Any]:
     if body.episode:
         busy = {j["episode"] for j in jobs.values() if j["status"] in ("queued", "running")}
         try:
-            episode = (plan_mod.next_episode(body.book, pipeline.made_episodes(body.book) | busy)
+            episode = (plan_mod.next_episode(body.book, pipeline.made_episodes(body.book) | busy,
+                                             trends.episode_scores(body.book))
                        if body.episode == "next" else plan_mod.find_episode(body.book, body.episode))
         except KeyError as exc:
             raise HTTPException(404, str(exc.args[0])) from exc
