@@ -7,6 +7,9 @@
 # swap torch, torchvision and torchaudio for the cu126 builds. We start the
 # server with the venv's python directly: `uv run` would re-sync the lockfile
 # and put the cu128 build back.
+#
+# Python comes from uv (a download of a few seconds) instead of the deadsnakes
+# PPA, which pulled in ~300 apt packages and took over 20 minutes on our server.
 
 FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04
 
@@ -15,14 +18,11 @@ ARG TORCH_VERSION=2.10.0
 ARG TORCHVISION_VERSION=0.25.0
 ARG TORCH_INDEX=https://download.pytorch.org/whl/cu126
 
-ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_LINK_MODE=copy
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        software-properties-common build-essential git curl ca-certificates \
-        libsndfile1 ffmpeg libffi-dev libssl-dev \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends python3.11 python3.11-dev python3.11-venv \
+        build-essential git curl ca-certificates libsndfile1 ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.7 /uv /uvx /bin/
@@ -30,11 +30,15 @@ COPY --from=ghcr.io/astral-sh/uv:0.7 /uv /uvx /bin/
 WORKDIR /app
 RUN git clone --depth 1 --branch ${ACESTEP_REF} https://github.com/ace-step/ACE-Step-1.5.git /app
 
-RUN uv sync --frozen --no-dev --python python3.11 \
+# get_arch_list() is empty during `docker build` (no GPU attached), so check
+# the architectures compiled into the wheel instead. An sm_60 kernel also runs
+# on our sm_61 card.
+RUN uv python install 3.11 \
+    && uv sync --frozen --no-dev --python 3.11 \
     && uv pip install --python /app/.venv/bin/python --reinstall \
         "torch==${TORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" "torchaudio==${TORCH_VERSION}" \
         --index-url ${TORCH_INDEX} \
-    && /app/.venv/bin/python -c "import torch; arches = torch.cuda.get_arch_list(); print(torch.__version__, arches); assert 'sm_61' in arches, 'this torch build has no Pascal kernels'"
+    && /app/.venv/bin/python -c "import torch; flags = torch._C._cuda_getArchFlags(); print(torch.__version__, flags); assert 'sm_61' in flags or 'sm_60' in flags, 'this torch build has no Pascal kernels'"
 
 RUN mkdir -p /app/checkpoints /app/output
 
@@ -45,4 +49,4 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=600s --retries=5 \
     CMD curl -sf http://localhost:8001/health > /dev/null || exit 1
 
 # Print what the GPU can do at start, then serve the REST API.
-CMD ["sh", "-c", "/app/.venv/bin/python -c \"import torch; print('torch', torch.__version__, 'cuda ok:', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')\" ; exec /app/.venv/bin/python -m acestep.api_server --host 0.0.0.0 --port 8001"]
+CMD ["sh", "-c", "/app/.venv/bin/python -c \"import torch; print('torch', torch.__version__, 'cuda ok:', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '', torch.cuda.get_arch_list())\" ; exec /app/.venv/bin/python -m acestep.api_server --host 0.0.0.0 --port 8001"]
