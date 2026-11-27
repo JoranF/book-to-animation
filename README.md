@@ -1,5 +1,7 @@
 # book-to-animation
 
+> **Documentatie (NL):** zie [docs/](docs/README.md) voor architectuur, opzetten op Dokploy, problemen oplossen, logboek en overdracht.
+
 Turns an idea from a philosophy book into a finished vertical YouTube Short
 (9:16, 30 to 60 seconds, English) that looks like a late-90s low-poly 3D
 console game on an old TV. First book: *The Courage to Be Disliked*, with the
