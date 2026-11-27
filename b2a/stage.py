@@ -57,6 +57,13 @@ forward), "stop" (raises a hand), "point" (optional "sweep": degrees), "point_vi
 "paint", "arms_crossed" (shakes head, taps foot), "whisper" ("lean": 1 or -1),
 "arms_up" (relief, joy), "nod", "talk" (explains with both hands), "shrug",
 "shake_head", "facepalm", "startle" (jumps in surprise), "laugh".
+- optional "actions": [ACTION, ACTION, ...] plays several actions one after the
+  other within the scene instead of one (e.g. ["talk", "point", "shrug"] or
+  ["startle", "arms_crossed"]), optional "at": [seconds...] when each next one
+  starts. Use it to make a shot change as the line goes on; walk and trudge
+  cannot be in a list. Every action is acted out with key poses (hand on chest,
+  palms up, finger raised...) chosen fresh per shot, so the same action never
+  looks the same twice, and the speaker's gestures land on stressed words.
 - optional "look_at": "youth"|"philosopher"|"father" or [x, y]: turns the actor
   toward that person or point (use it instead of "face" when two people talk).
 - The actor who speaks the scene's line gets a moving mouth automatically.
@@ -141,6 +148,19 @@ def validate(stage: Any) -> dict[str, Any]:
             raise ValueError(f"unknown actor '{actor.get('who')}', choose from {WHO}")
         if actor.setdefault("action", "idle") not in ACTIONS:
             raise ValueError(f"unknown action '{actor['action']}', choose from {ACTIONS}")
+        if "actions" in actor:
+            chain = actor["actions"]
+            if not isinstance(chain, list) or not 1 <= len(chain) <= 4:
+                raise ValueError("actor.actions must be a list of 1 to 4 actions")
+            for name in chain:
+                if name not in ACTIONS or name in ("walk", "trudge"):
+                    raise ValueError(f"actor.actions: '{name}' is not allowed, choose from "
+                                     f"{[a for a in ACTIONS if a not in ('walk', 'trudge')]}")
+            if actor["action"] in ("walk", "trudge"):
+                raise ValueError("an actor that walks cannot also have 'actions'")
+            actor["action"] = chain[0]
+            if "at" in actor:
+                _vec(actor["at"], tuple(range(1, 5)), "actor.at")
         if actor.get("mood") is not None and actor["mood"] not in MOODS:
             raise ValueError(f"unknown mood '{actor['mood']}', choose from {MOODS}")
         _vec(actor.setdefault("pos", [0, 0]), (2, 3), "actor.pos")
