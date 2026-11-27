@@ -42,12 +42,32 @@ def render_stage(stage: dict[str, Any], seconds: float, dest: Path) -> Path:
     return dest
 
 
+def speech_beats(words: list[dict[str, Any]], start: float, end: float) -> list[float]:
+    """Moments in a scene (seconds from its start) where a gesture stroke fits:
+    stressed-looking words (long ones, the first word of a phrase, the word
+    before a comma or full stop). People hit these with their hands and head."""
+    beats: list[float] = []
+    after_pause = True
+    for w in words:
+        if not start <= w["start"] < end:
+            continue
+        text = w["text"].strip()
+        bare = text.strip(".,!?;:\"'()-")
+        if after_pause or len(bare) >= 6 or text[-1:] in ".,!?;:" or bare.isupper() and len(bare) > 1:
+            beats.append(round(w["start"] - start, 2))
+        after_pause = text[-1:] in ".,!?;:"
+    return beats
+
+
 def make_visuals(script: dict[str, Any], times: list[tuple[float, float]],
-                 out_dir: Path) -> list[dict[str, Path | None]]:
+                 out_dir: Path, words: list[dict[str, Any]] | None = None) -> list[dict[str, Path | None]]:
     scenes = script["scenes"]
 
     def work(i: int) -> dict[str, Path | None]:
-        stage = scenes[i].get("stage") or stage_mod.DEFAULT
+        stage = dict(scenes[i].get("stage") or stage_mod.DEFAULT)
+        stage["seed"] = i      # same action in another shot gets other key poses
+        if words:
+            stage["beats"] = speech_beats(words, *times[i])
         clip = render_stage(stage, times[i][1] - times[i][0], out_dir / f"scene_{i:02d}.mp4")
         return {"image": None, "clip": clip}
 

@@ -9,11 +9,15 @@ camera (towards -Y) when their "face" angle is 0.
 """
 from __future__ import annotations
 
+import json
 import math
+import zlib
 from typing import Any, Callable
 
 import bpy
 from mathutils import Vector
+
+from . import motion
 
 FPS = 15                # low frame rate on purpose, like an old console
 RES = (360, 640)        # rendered small, scaled up with hard pixels later
@@ -187,6 +191,9 @@ def build_head(parent, look: dict[str, Any], r: float, mood: str, z: float = 0.0
     return neck, head, face
 
 
+BROW_Z = 0.5 * 0.46     # brows sit at r * 0.46 in the head's unit space
+
+
 class Character:
     """A segmented low-poly figure: body parts hang from joints we can turn."""
 
@@ -221,14 +228,19 @@ class Character:
 
         self.neck, self.head, self.face = build_head(self.body, look, r_head, mood or look["mood"], torso_h)
 
-        self.arms, self.hands = [], []
+        self.arms, self.elbows, self.hands = [], [], []
+        upper = arm * 0.48
         for side in (-1, 1):
             shoulder = joint("shoulder", (side * (0.24 * s * w + 0.03), 0, torso_h * 0.92), self.body)
-            shape("tube", look["top"], (0.15 * s, 0.15 * s, arm), (0, 0, -arm / 2), parent=shoulder, sides=5, top=1.15)
+            shape("tube", look["top"], (0.15 * s, 0.15 * s, upper + 0.03 * s), (0, 0, -upper / 2), parent=shoulder, sides=5, top=1.1)
             if look.get("stripe"):
                 shape("tube", look["stripe"], (0.165 * s, 0.165 * s, 0.05 * s), (0, 0, -arm * 0.3), parent=shoulder, sides=5)
-            hand = shape("ball", look["skin"], (0.16 * s, 0.16 * s, 0.16 * s), (0, 0, -arm - 0.03 * s), parent=shoulder)
+            elbow = joint("elbow", (0, 0, -upper), shoulder)
+            shape("ball", look["top"], (0.15 * s, 0.15 * s, 0.15 * s), (0, 0, 0), parent=elbow)
+            shape("tube", look["top"], (0.14 * s, 0.14 * s, arm - upper), (0, 0, -(arm - upper) / 2), parent=elbow, sides=5, top=1.1)
+            hand = shape("ball", look["skin"], (0.16 * s, 0.16 * s, 0.16 * s), (0, 0, -(arm - upper) - 0.03 * s), parent=elbow)
             self.arms.append(shoulder)
+            self.elbows.append(elbow)
             self.hands.append(hand)
         self.arm_l, self.arm_r = self.arms       # screen left, screen right when facing us
         self.arm_len = arm
@@ -243,8 +255,8 @@ class Character:
             self.legs.append(hip)
 
         if look.get("cane"):
-            shape("tube", "#7a4a21", (0.04, 0.04, leg + torso_h * 0.75), (0.02, -0.04, -arm - 0.02 + (leg + torso_h * 0.75) / 2 - (leg + torso_h * 0.75) + 0.12),
-                  parent=self.arm_r, sides=5)
+            shape("tube", "#7a4a21", (0.04, 0.04, leg + torso_h * 0.75), (0.02, -0.04, -(arm - upper) - 0.02 + (leg + torso_h * 0.75) / 2 - (leg + torso_h * 0.75) + 0.12),
+                  parent=self.elbows[1], sides=5)
         self.rest()
 
     # pose helpers -----------------------------------------------------------
@@ -252,8 +264,10 @@ class Character:
         self.root.location = self.pos
         deg(self.root, z=self.face_angle)
         self.body.location = (0, 0, self.leg)
-        for part in (self.body, self.neck, *self.arms, *self.legs):
+        for part in (self.body, self.neck, *self.arms, *self.elbows, *self.legs):
             deg(part)
+        for brow in self.face["brows"]:
+            brow.location.z = BROW_Z
         deg(self.arm_l, y=7)
         deg(self.arm_r, y=-7)
 
@@ -264,6 +278,25 @@ class Character:
         """Lift an arm: `forward` degrees to the front, `out` degrees sideways."""
         sign = 1 if side == 0 else -1
         deg(self.arms[side], x=-forward, y=sign * out)
+
+    def elbow(self, side: int, bend: float = 12.0, inward: float = 0.0) -> None:
+        """Bend the forearm forward, `inward` turns it towards the chest."""
+        sign = 1 if side == 0 else -1
+        deg(self.elbows[side], x=-bend, z=sign * inward)
+
+    def apply(self, q: dict[str, float]) -> None:
+        """Put a full pose from motion.py on the figure."""
+        s = self.s
+        self.body.location = (q["shift"] * s, 0, self.leg + q["lift"] * s)
+        deg(self.body, x=q["lean"], y=q["side"], z=q["twist"])
+        deg(self.neck, x=q["pitch"], y=q["tilt"], z=q["turn"])
+        for side, pre in ((0, "l_"), (1, "r_")):
+            self.arm(side, q[pre + "fwd"], q[pre + "out"])
+            self.elbow(side, max(q[pre + "elbow"], 0.0), q[pre + "in"])
+        deg(self.legs[0], x=q["leg_l"])
+        deg(self.legs[1], x=q["leg_r"])
+        for brow in self.face["brows"]:
+            brow.location.z = BROW_Z + 0.05 * max(q["brow"], 0.0)
 
 
 def big_backpack(parent, loc, size: float):
@@ -277,20 +310,18 @@ def big_backpack(parent, loc, size: float):
 
 
 # --- movements ------------------------------------------------------------
-# Each movement poses a character for time t (seconds) of a scene T seconds long.
-
-def act_idle(c: Character, t, T, p):
-    c.breathe(t)
-    deg(c.neck, z=6 * sin(t * 0.9), x=2 * sin(t * 1.3))
-    c.arm(0, 3 * sin(t * 1.4)); c.arm(1, -3 * sin(t * 1.4))
-
+# Walking is a cycle, so it stays a loop. Every other action is posed key by
+# key in motion.py (pose-to-pose with easing, overlap and moving holds).
 
 def _walk_pose(c: Character, t, speed=1.0, swing=32.0, lean=0.0):
     phase = t * 6.0 * speed
     deg(c.legs[0], x=swing * sin(phase)); deg(c.legs[1], x=-swing * sin(phase))
     c.arm(0, swing * 0.8 * sin(phase)); c.arm(1, -swing * 0.8 * sin(phase))
+    # forearms swing a beat later and bend more on the forward swing (follow-through)
+    c.elbow(0, 18 + 16 * max(sin(phase - 0.6), 0)); c.elbow(1, 18 + 16 * max(-sin(phase - 0.6), 0))
     c.body.location.z = c.leg + 0.03 * c.s * abs(sin(phase))
-    deg(c.body, x=-lean)
+    deg(c.body, x=lean, z=4 * sin(phase))
+    deg(c.neck, z=-3 * sin(phase))
 
 
 def _move(c: Character, t, T, p):
@@ -304,151 +335,17 @@ def _move(c: Character, t, T, p):
 def act_walk(c, t, T, p):
     _walk_pose(c, t, p.get("speed", 1.0))
     _move(c, t, T, p)
-    deg(c.neck, x=-4)
+    c.neck.rotation_euler.x = math.radians(-4)
 
 
-def act_trudge(c, t, T, p):     # walking bent under a heavy load
-    _walk_pose(c, t, 0.55, swing=20, lean=28)
+def act_trudge(c, t, T, p):     # walking bent forward under a heavy load
+    _walk_pose(c, t, 0.55, swing=20, lean=24)
     _move(c, t, T, p)
-    deg(c.neck, x=14)
+    c.neck.rotation_euler.x = math.radians(-10)   # looks up a little from the bent body
 
 
-def act_slump(c, t, T, p):      # sitting/standing collapse, head sinking
-    k = ease(t / max(T * 0.8, 0.1))
-    deg(c.body, x=-(12 + 26 * k))
-    deg(c.neck, x=-(10 + 30 * k), z=4 * sin(t * 1.1))
-    c.arm(0, 35 + 10 * k, 18); c.arm(1, 35 + 10 * k, 18)
-    c.body.location.z = c.leg - 0.02 * k
-
-
-def act_stop(c, t, T, p):       # raise an open hand: stop
-    k = ease(t / 0.8)
-    c.breathe(t)
-    c.arm(0, 35 * k, 7 + (118 + 4 * sin(t * 3)) * k)
-    c.arm(1, 4, 7)
-    deg(c.neck, x=-8 * ease((t - 1.6) / 0.4) * (1 - ease((t - 2.2) / 0.4)))
-
-
-def act_point(c, t, T, p):      # point with the right arm (cane hand for the philosopher)
-    k = ease(t / 0.7)
-    sweep = p.get("sweep", 0.0) * sin(t * 1.5)
-    c.breathe(t)
-    c.arm(1, p.get("lift", 80) * k, 8 + sweep)
-    c.arm(0, 3 * sin(t * 1.4))
-    deg(c.neck, z=sweep * 0.6)
-
-
-def act_point_viewer(c, t, T, p):
-    k = ease(t / 0.9)
-    c.breathe(t)
-    deg(c.body, x=-10 * k)
-    c.arm(0, 78 * k + 2 * sin(t * 4), 7 + 14 * k)
-    deg(c.neck, x=4 * k, z=5 * sin(t * 1.2))
-    for side, brow in zip((-1, 1), c.face["brows"]):
-        brow.location.z = 0.23 + (0.06 * ease((t - 1.0) / 0.4) if side == 1 else 0)
-
-
-def act_look_around(c, t, T, p):
-    c.breathe(t)
-    deg(c.neck, z=38 * sin(t * 1.6))
-    c.arm(0, 3 * sin(t)); c.arm(1, -3 * sin(t))
-
-
-def act_give(c, t, T, p):       # hand something over with one arm, hug with the other
-    k = ease((t - 0.3) / 1.0)
-    c.breathe(t)
-    c.arm(p.get("side", 1), 70 * k, 20 * k)
-    c.arm(1 - p.get("side", 1), 55, -18)
-    deg(c.neck, z=(12 if p.get("side", 1) else -12) * k)
-
-
-def act_reach(c, t, T, p):
-    k = ease((t - 0.2) / 1.0)
-    c.breathe(t)
-    c.arm(0, 70 * k, 10); c.arm(1, 70 * k, 10)
-
-
-def act_paint(c, t, T, p):
-    c.breathe(t, 2)
-    c.arm(1, 78 + 22 * sin(t * 4.2), 6 + 14 * sin(t * 2.1))
-    c.arm(0, 10, 12)
-    deg(c.neck, z=8 * sin(t * 2.1), x=-4)
-    deg(c.body, z=5 * sin(t * 2.1))
-
-
-def act_arms_crossed(c, t, T, p):
-    c.breathe(t)
-    c.arm(0, 62, -42); c.arm(1, 62, -42)
-    deg(c.neck, z=16 * sin(t * 3.2) * ease((t - 1.0) / 0.5))
-    deg(c.legs[1], x=10 * max(sin(t * 7), 0))
-
-
-def act_whisper(c, t, T, p):    # lean to a neighbour and point at someone
-    c.breathe(t)
-    lean = p.get("lean", 1)
-    deg(c.body, y=8 * lean + 3 * sin(t * 2 + lean))
-    deg(c.neck, z=20 * lean + 8 * sin(t * 3 + lean))
-    c.arm(1 if lean > 0 else 0, 70 + 6 * sin(t * 5 + lean), 10)
-
-
-def act_arms_up(c, t, T, p):    # relief: arms wide open to the sky
-    k = ease((t - 0.2) / 1.2)
-    c.arm(0, 20 * k, 7 + 128 * k); c.arm(1, 20 * k, 7 + 128 * k)
-    deg(c.neck, x=14 * k)
-    deg(c.body, x=6 * k)
-    c.body.location.z = c.leg + 0.02 * c.s * sin(t * 2.2) * k
-
-
-def act_nod(c, t, T, p):
-    c.breathe(t)
-    deg(c.neck, x=-12 * max(sin(t * 3.0), 0))
-    c.arm(0, 3 * sin(t)); c.arm(1, 4)
-
-
-def act_talk(c, t, T, p):       # explaining with both hands
-    c.breathe(t)
-    c.arm(0, 38 + 16 * sin(t * 4.1), 16 + 8 * sin(t * 2.3))
-    c.arm(1, 34 + 16 * sin(t * 4.1 + 2.0), 16 + 8 * sin(t * 2.9))
-    deg(c.body, z=4 * sin(t * 1.7), x=3)
-
-
-def act_shrug(c, t, T, p):      # "how should I know": shoulders and palms up, twice
-    c.breathe(t)
-    k = max(sin(t * 3.0), 0) ** 0.5
-    c.arm(0, 30 * k, 7 + 40 * k); c.arm(1, 30 * k, 7 + 40 * k)
-    c.body.location.z = c.leg + 0.035 * c.s * k
-    deg(c.neck, y=10 * k)
-
-
-def act_shake_head(c, t, T, p):
-    c.breathe(t)
-    deg(c.neck, z=24 * sin(t * 6.0) * (1 - 0.5 * ease(t / max(T, 0.1))))
-    c.arm(0, 4); c.arm(1, 4)
-
-
-def act_facepalm(c, t, T, p):   # hand to the forehead, head sinks
-    k = ease((t - 0.15) / 0.45)
-    c.breathe(t, 1 - k * 0.5)
-    c.arm(1, 150 * k, -24 * k)
-    deg(c.neck, x=-16 * k, z=5 * sin(t * 2.5) * k)
-    deg(c.body, x=-5 * k)
-
-
-def act_startle(c, t, T, p):    # jumps back in surprise, then stares
-    k = ease(t / 0.18) - ease((t - 0.25) / 0.35)
-    c.body.location.z = c.leg + 0.16 * c.s * k
-    hold = ease(t / 0.2)
-    c.arm(0, 25 * hold, 7 + 55 * hold); c.arm(1, 25 * hold, 7 + 55 * hold)
-    deg(c.body, x=9 * hold)
-    deg(c.neck, x=6 * hold)
-
-
-def act_laugh(c, t, T, p):
-    bounce = abs(sin(t * 9.0))
-    c.body.location.z = c.leg + 0.03 * c.s * bounce
-    deg(c.body, x=7 + 3 * bounce)
-    deg(c.neck, x=12 + 6 * bounce)
-    c.arm(0, 50, -30); c.arm(1, 50, -30)
+LOCOMOTION: dict[str, Callable] = {"walk": act_walk, "trudge": act_trudge}
+ACTIONS: dict[str, Any] = {**{name: "posed" for name in motion.ROUTINES}, **LOCOMOTION}
 
 
 def speak(c: Character, t: float) -> None:
@@ -457,18 +354,10 @@ def speak(c: Character, t: float) -> None:
     base = c.__dict__.setdefault("mouth_base", tuple(mouth.scale))
     syllable = abs(sin(t * 10.5)) * (0.55 + 0.45 * abs(sin(t * 2.7)))
     mouth.scale = (base[0] * (1 - 0.25 * syllable), base[1], base[2] * (1 + 3.2 * syllable))
-    c.neck.rotation_euler.x += math.radians(3.5 * sin(t * 5.2))
-    c.neck.rotation_euler.y += math.radians(2.5 * sin(t * 3.1))
+    c.neck.rotation_euler.x += math.radians(1.5 * sin(t * 5.2))
+    c.neck.rotation_euler.y += math.radians(1.2 * sin(t * 3.1))
 
 
-ACTIONS: dict[str, Callable] = {
-    "talk": act_talk, "shrug": act_shrug, "shake_head": act_shake_head,
-    "facepalm": act_facepalm, "startle": act_startle, "laugh": act_laugh,
-    "idle": act_idle, "walk": act_walk, "trudge": act_trudge, "slump": act_slump,
-    "stop": act_stop, "point": act_point, "point_viewer": act_point_viewer,
-    "look_around": act_look_around, "give": act_give, "reach": act_reach, "paint": act_paint,
-    "arms_crossed": act_arms_crossed, "whisper": act_whisper, "arms_up": act_arms_up, "nod": act_nod,
-}
 
 
 # --- props ----------------------------------------------------------------
@@ -894,16 +783,32 @@ def build_scene(stage: dict[str, Any]) -> list[Updater]:
         updater = PROPS[spec["type"]](spec)
         if updater:
             updaters.append(updater)
-    for spec in stage.get("actors", []):
+    base_seed = int(stage.get("seed", 0)) ^ zlib.crc32(json.dumps(stage, sort_keys=True).encode())
+    for index, spec in enumerate(stage.get("actors", [])):
         char = Character(spec["who"], spec.get("pos", (0, 0)), spec.get("face", 0.0),
                          spec.get("mood"), spec.get("carry"))
-        action = ACTIONS[spec.get("action", "idle")]
-
-        def animate(t, T, char=char, action=action, spec=spec):
-            char.rest()
-            action(char, t + spec.get("offset", 0.0), T, spec)
+        name = spec.get("action", "idle")
+        if name in LOCOMOTION:
+            def animate(t, T, char=char, act=LOCOMOTION[name], spec=spec):
+                char.rest()
+                act(char, t + spec.get("offset", 0.0), T, spec)
+                if spec.get("talking"):
+                    speak(char, t)
+        else:
+            params = dict(spec)
             if spec.get("talking"):
-                speak(char, t)
+                params["beats"] = stage.get("beats", [])
+            mood = spec.get("mood") or char.look["mood"]
+            seed = base_seed + 7919 * index
+
+            def animate(t, T, char=char, spec=spec, params=params, mood=mood, seed=seed, name=name, cache={}):
+                if "track" not in cache:      # key poses are planned once per shot
+                    cache["track"] = motion.track(spec.get("actions") or name, T, params, seed, mood,
+                                                  cane=bool(char.look.get("cane")))
+                char.rest()
+                char.apply(cache["track"].sample(t + spec.get("offset", 0.0)))
+                if spec.get("talking"):
+                    speak(char, t)
         updaters.append(animate)
     updaters.append(make_camera(stage.get("camera", {})))
     return updaters

@@ -105,7 +105,7 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     times = voice_mod.scene_times(script, words, total)
 
     progress("visuals")
-    scenes = visuals.make_visuals(script, times, job)
+    scenes = visuals.make_visuals(script, times, job, words)
     music, music_info = visuals.make_music(job, total, short_id, script.get("music_mood"))
     effects, sfx_used = sfx.make_track(script, times, total, job / "sfx.wav", short_id)
 

@@ -59,8 +59,28 @@ generated images. A scene is plain data:
 
 `b2a/stage.py` lists everything a scene may use (7 sets, 4 kinds of people,
 21 movements, 23 props, 6 camera moves) and is the manual the script writer
-gets. `b2a/world.py` holds the shapes and movements. New sets, props or
-movements are added in both files.
+gets. `b2a/world.py` holds the shapes. New sets, props or movements are
+added in `stage.py` and in `world.py` (sets, props) or `motion.py` (movements).
+
+### How the characters move (pose to pose)
+
+`b2a/motion.py` animates like a key-pose animator instead of looping sine
+waves. Every action is a short sequence of strong key poses from a library of
+about 40 (hand on chest, palms up, finger raised, hands on hips, arms crossed,
+hand to chin...). The inbetweens use easing that fits the move: slow in and
+out, a snap with a small overshoot for a gesture stroke, a heavy drop for a
+slump. Big moves get anticipation (a dip before a jump, the arm pulled back
+before a point), the head and forearms drag a few frames behind the body
+(overlap and follow-through), and held poses keep breathing and drifting
+(moving holds). Arms, weight shifts and glances run on separate layers.
+
+Which poses, in what order and on which hand is a seeded choice per shot, so
+a `talk` in the close-up and in the two-shot never look the same. The
+speaker's gesture strokes and head nods land on stressed words, taken from the
+voice's word timings. The mood sets the energy: angry is fast and big, sad is
+slow and small with the head down. The philosopher keeps his cane hand low and
+gestures with the other one, except when he points with the cane. An actor
+can also play several actions in one shot: `"actions": ["talk", "shrug"]`.
 
 ## Run it
 
