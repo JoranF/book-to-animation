@@ -124,14 +124,16 @@ def scanlines(dest: Path) -> Path:
 
 
 def crt_filter() -> str:
-    """Old game on an old TV: chunky pixels, colour bleed, scanlines, glow."""
+    """Old game on an old TV: chunky pixels, colour bleed, scanlines, glow.
+
+    The picture stays flat: no barrel/lens warping, so edges and text stay straight.
+    """
     return (
         f"[0:v]scale={W // 3}:{H // 3}:flags=bicubic,scale={W}:{H}:flags=neighbor,"
         "eq=saturation=1.2:contrast=1.06:brightness=0.02,"
         "rgbashift=rh=-3:bh=3,gblur=sigma=0.8[px];"
         "[px][1:v]overlay=0:0,noise=alls=7:allf=t,"
-        "vignette=angle=PI/5,"
-        "lenscorrection=k1=0.045:k2=0.02:i=bilinear[crt]"
+        "vignette=angle=PI/5[crt]"
     )
 
 
