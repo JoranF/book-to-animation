@@ -1,0 +1,35 @@
+{
+  "slug": "enchiridion",
+  "title": "The Enchiridion",
+  "authors": "Epictetus",
+  "school": "Stoicism",
+  "public_domain": true,
+  "summary": "A short handbook of the former slave turned Stoic teacher Epictetus: some things are up to us (opinions, choices, desires) and others are not (body, reputation, money); we suffer when we confuse the two. Treat life like a play where you act your role well, want things to happen as they happen, and judge yourself, not others.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "epictetus",
+      "dichotomy of control",
+      "stoic philosophy",
+      "stoicism shorts",
+      "stop overthinking",
+      "mental toughness"
+    ],
+    "subreddits": [
+      "Stoicism",
+      "philosophy",
+      "Anxiety",
+      "selfimprovement",
+      "getdisciplined"
+    ]
+  }
+}

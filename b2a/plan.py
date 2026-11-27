@@ -59,6 +59,20 @@ def next_episode(book_slug: str, made: set[str], scores: dict[str, float] | None
     return min(todo, key=lambda ep: (counts[ep["chapter_id"]], -scores.get(ep["id"], 0.0)))
 
 
+def next_book(books: list[str], shorts: list[dict[str, Any]], busy: list[str] | None = None) -> str:
+    """For book "auto": the book with the fewest Shorts (made or being made) that still has
+    unmade episodes, so the channel takes turns between books. Ties go in list order."""
+    count = {b: 0 for b in books}
+    for slug in [m.get("book") for m in shorts] + list(busy or []):
+        if slug in count:
+            count[slug] += 1
+    made = {b: {m["episode"] for m in shorts if m.get("book") == b and m.get("episode")} for b in books}
+    open_books = [b for b in books if any(ep["id"] not in made[b] for ep in episodes(b))]
+    if not open_books:
+        raise KeyError("Every episode of every book has been made")
+    return min(open_books, key=lambda b: (count[b], books.index(b)))
+
+
 def adhoc_episode(topic: str, idea: str, number: int) -> dict[str, Any]:
     """A free topic typed by the owner, shaped like an episode."""
     return {"id": None, "title": topic, "hook": "", "angle": idea, "chapter": None,

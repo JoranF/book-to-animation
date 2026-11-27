@@ -1,0 +1,35 @@
+{
+  "slug": "wisdom-of-life",
+  "title": "The Wisdom of Life",
+  "authors": "Arthur Schopenhauer",
+  "school": "Pessimist philosophy",
+  "public_domain": true,
+  "summary": "Schopenhauer's practical guide to a bearable life: happiness depends mostly on what you are (health, mind, character), less on what you have and least on what others think of you. Avoid pain rather than chase pleasure, learn to enjoy solitude, limit your desires, and stop letting other people's opinions run your life.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "schopenhauer",
+      "schopenhauer quotes",
+      "loneliness philosophy",
+      "stop caring what people think",
+      "pessimism philosophy",
+      "philosophy shorts"
+    ],
+    "subreddits": [
+      "philosophy",
+      "Schopenhauer",
+      "introvert",
+      "selfimprovement",
+      "socialanxiety"
+    ]
+  }
+}

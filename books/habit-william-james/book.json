@@ -1,0 +1,35 @@
+{
+  "slug": "habit-william-james",
+  "title": "Habit",
+  "authors": "William James",
+  "school": "Psychology",
+  "public_domain": true,
+  "summary": "The father of American psychology on habit: the nervous system is plastic, so we become walking bundles of habits. Habits make actions automatic and free the mind. Start new habits with a strong decision, never allow an exception until the habit is rooted, act on every resolution right away, and train your will by doing a small hard thing every day.",
+  "characters": {
+    "philosopher": {
+      "name": "The Philosopher",
+      "prompt": "THE PHILOSOPHER, a small elderly man with a round bald head, a short white beard, tiny round glasses, a long mustard-yellow cardigan over a teal shirt, brown trousers, big simple shoes, kind calm expression, holding a wooden walking cane"
+    },
+    "youth": {
+      "name": "The Youth",
+      "prompt": "THE YOUTH, a lanky young man around twenty with spiky messy dark-blue hair, big expressive eyes, a red zip hoodie with a white stripe on the sleeves, grey shorts, oversized white-and-orange sneakers, a small green backpack, slightly worried expression"
+    }
+  },
+  "trends": {
+    "queries": [
+      "william james habit",
+      "build habits",
+      "discipline vs motivation",
+      "psychology of habits",
+      "self improvement",
+      "psychology shorts"
+    ],
+    "subreddits": [
+      "psychology",
+      "getdisciplined",
+      "selfimprovement",
+      "productivity",
+      "DecidingToBeBetter"
+    ]
+  }
+}

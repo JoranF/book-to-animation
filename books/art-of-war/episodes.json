@@ -1,0 +1,135 @@
+{
+ "book": "art-of-war",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "aow1",
+   "title": "Part 1: Win before the fight",
+   "episodes": [
+    {
+     "id": "aow1-01",
+     "title": "Win without fighting",
+     "hook": "The best way to win a fight is to never have it.",
+     "angle": "Supreme skill is beating the problem without open conflict. Example: defusing a coworker feud with one private conversation.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "aow1-02",
+     "title": "Win first, then fight",
+     "hook": "Winners win before the battle starts.",
+     "angle": "Victory is decided in preparation. Example: two students, one cramming the night before, one prepared for a week.",
+     "format": "reframe"
+    },
+    {
+     "id": "aow1-03",
+     "title": "Know yourself",
+     "hook": "If you don't know your weak spots, you've already lost.",
+     "angle": "Know yourself and your opponent and you need not fear a hundred battles. Example: a fighter who knows he gasses out after three rounds.",
+     "format": "one_question"
+    },
+    {
+     "id": "aow1-04",
+     "title": "Pick your battles",
+     "hook": "Some battles you win by walking away.",
+     "angle": "There are fights you should not fight. Example: not replying to the troll under your post.",
+     "format": "dialogue"
+    }
+   ]
+  },
+  {
+   "id": "aow2",
+   "title": "Part 2: Deception and appearances",
+   "episodes": [
+    {
+     "id": "aow2-01",
+     "title": "All war is deception",
+     "hook": "When you're strong, look weak. When you're ready, look unprepared.",
+     "angle": "Hide your plans and abilities. Example: the chess player who acts nervous before springing a trap.",
+     "format": "mini_story"
+    },
+    {
+     "id": "aow2-02",
+     "title": "Don't announce your plans",
+     "hook": "Stop telling people your goals before you reach them.",
+     "angle": "Revealing plans invites opposition and drains motivation. Example: the friend who announces his diet and quits by Friday.",
+     "format": "challenge"
+    },
+    {
+     "id": "aow2-03",
+     "title": "Let them underestimate you",
+     "hook": "Being underestimated is a gift. Use it.",
+     "angle": "Low expectations from opponents are an advantage. Example: the quiet new hire who outperforms the loud one.",
+     "format": "reframe"
+    }
+   ]
+  },
+  {
+   "id": "aow3",
+   "title": "Part 3: Strength and weakness",
+   "episodes": [
+    {
+     "id": "aow3-01",
+     "title": "Attack what's weak",
+     "hook": "Don't hit the wall. Walk around it.",
+     "angle": "Avoid the opponent's strength, strike where they are empty. Example: a small shop that wins on service, not price, against a giant.",
+     "format": "reframe"
+    },
+    {
+     "id": "aow3-02",
+     "title": "Be like water",
+     "hook": "Water has no shape. That's why nothing can stop it.",
+     "angle": "Adapt to circumstances instead of holding a fixed plan. Example: a band that switches to streaming concerts when venues close.",
+     "format": "mini_story"
+    },
+    {
+     "id": "aow3-03",
+     "title": "Speed matters",
+     "hook": "Nobody ever won by dragging a war out.",
+     "angle": "Long campaigns drain everyone; finish things fast. Example: the group project that rots when nobody decides anything.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "aow3-04",
+     "title": "Leave them a way out",
+     "hook": "Never trap someone with no way out.",
+     "angle": "A cornered opponent fights to the death; give them an exit. Example: letting your partner save face in an argument.",
+     "format": "dialogue"
+    }
+   ]
+  },
+  {
+   "id": "aow4",
+   "title": "Part 4: The calm general",
+   "episodes": [
+    {
+     "id": "aow4-01",
+     "title": "Never act in anger",
+     "hook": "Anger can turn back into joy. A bad decision can't be undone.",
+     "angle": "A leader never moves out of rage. Example: the angry text you write, then delete.",
+     "format": "challenge"
+    },
+    {
+     "id": "aow4-02",
+     "title": "Opportunity multiplies",
+     "hook": "Opportunities multiply as they are seized.",
+     "angle": "Small wins open doors to bigger ones. Example: one freelance gig that leads to three referrals.",
+     "format": "mini_story"
+    },
+    {
+     "id": "aow4-03",
+     "title": "Chaos hides chances",
+     "hook": "In the middle of chaos there is also opportunity.",
+     "angle": "Disorder makes openings for the prepared. Example: a market crash where calm savers buy.",
+     "format": "reframe"
+    },
+    {
+     "id": "aow4-04",
+     "title": "Discipline wins",
+     "hook": "Talent wins a game. Discipline wins the war.",
+     "angle": "Order and training beat bravery alone. Example: the steady runner who passes the fast starter.",
+     "format": "one_question"
+    }
+   ]
+  }
+ ]
+}

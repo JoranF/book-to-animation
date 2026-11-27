@@ -51,3 +51,37 @@ def test_items_contract_for_the_dashboard(monkeypatch, tmp_path):
     assert sent.json()["item"]["status"] == "posted"
     assert json.loads((job / "meta.json").read_text())["posts"][0]["channels"][0]["id"] == "yt1"
     assert client.post("/api/items/nope/sent", auth=ME, json={}).status_code == 404
+
+
+def test_every_book_plan_is_valid():
+    from b2a import plan, script
+
+    slugs = server.all_books()
+    assert len(slugs) >= 9 and "meditations" in slugs and "courage-to-be-disliked" in slugs
+    seen = set()
+    for slug in slugs:
+        book = script.load_book(slug)
+        assert book["slug"] == slug and set(book["characters"]) == {"philosopher", "youth"}
+        eps = plan.episodes(slug)
+        assert len(eps) >= 14
+        for ep in eps:
+            assert ep["format"] in plan.FORMATS and ep["hook"] and ep["angle"]
+            assert len(ep["hook"].split()) <= 14
+            assert (slug, ep["id"]) not in seen
+            seen.add((slug, ep["id"]))
+
+
+def test_books_list_and_auto_rotation(monkeypatch, tmp_path):
+    from b2a import plan
+
+    monkeypatch.setenv("APP_PASSWORD", "secret")
+    monkeypatch.setattr(server.config, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(server.todo, "put", lambda _id: None)    # no real render
+    monkeypatch.setattr(server, "jobs", {})
+    client = TestClient(server.app)
+    books = client.get("/api/books", auth=ME).json()["books"]
+    assert {b["slug"] for b in books} == set(server.all_books()) and all(b["made"] == 0 for b in books)
+    picked = [client.post("/api/shorts", auth=ME, json={"book": "auto"}).json()["book"] for _ in range(3)]
+    assert len(set(picked)) == 3                                 # takes turns between books
+    shorts = [{"book": "art-of-war", "episode": ep["id"]} for ep in plan.episodes("art-of-war")]
+    assert plan.next_book(["art-of-war", "meditations"], shorts) == "meditations"

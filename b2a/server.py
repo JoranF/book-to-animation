@@ -40,7 +40,7 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)) -> None:
 
 
 class NewShort(BaseModel):
-    book: str = "courage-to-be-disliked"
+    book: str = Field(default="courage-to-be-disliked", max_length=80)   # a slug, or "auto"
     episode: str = Field(default="", max_length=40)   # id from the plan, or "next"
     topic: str = Field(default="", max_length=200)   # free topic when no episode
     idea: str = Field(default="", max_length=1000)
@@ -111,6 +111,13 @@ def get_trends(book: str = "courage-to-be-disliked") -> dict[str, Any]:
 
 @app.post("/api/shorts", dependencies=[Depends(auth)])
 def create_short(body: NewShort) -> dict[str, Any]:
+    if body.book == "auto":                      # rotate over every book that has episodes left
+        busy = [j["book"] for j in jobs.values() if j["status"] in ("queued", "running")]
+        try:
+            body.book = plan_mod.next_book(all_books(), pipeline.list_shorts(), busy)
+        except KeyError as exc:
+            raise HTTPException(404, str(exc.args[0])) from exc
+        body.episode = body.episode or "next"
     try:
         script_mod.load_book(body.book)
     except FileNotFoundError as exc:
@@ -131,6 +138,23 @@ def create_short(body: NewShort) -> dict[str, Any]:
     jobs[short_id] = {"id": short_id, "status": "queued", "step": "queued", **data}
     todo.put(short_id)
     return jobs[short_id]
+
+
+def all_books() -> list[str]:
+    return [p.parent.name for p in sorted(config.BOOKS_DIR.glob("*/book.json"))]
+
+
+@app.get("/api/books", dependencies=[Depends(auth)])
+def get_books() -> dict[str, Any]:
+    """Every book with a plan, and how many of its episodes already have a Short."""
+    out = []
+    for slug in all_books():
+        book = script_mod.load_book(slug)
+        made = pipeline.made_episodes(slug)
+        eps = plan_mod.episodes(slug)
+        out.append({"slug": slug, "title": book["title"], "authors": book.get("authors", ""),
+                    "episodes": len(eps), "made": sum(ep["id"] in made for ep in eps)})
+    return {"books": out}
 
 
 @app.get("/api/episodes", dependencies=[Depends(auth)])

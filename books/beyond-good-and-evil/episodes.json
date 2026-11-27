@@ -1,0 +1,135 @@
+{
+ "book": "beyond-good-and-evil",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "bge1",
+   "title": "Part 1: Question everything",
+   "episodes": [
+    {
+     "id": "bge1-01",
+     "title": "Your beliefs have a motive",
+     "hook": "Your strongest beliefs might just be your wishes in disguise.",
+     "angle": "Philosophies often justify what their makers already wanted. Example: someone who 'believes' all rich people are evil right after failing a business.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "bge1-02",
+     "title": "Truth isn't always nice",
+     "hook": "Why do you assume the truth will make you feel good?",
+     "angle": "We prefer comfortable lies; a free mind can handle unpleasant truths. Example: asking a friend for honest feedback and actually wanting it.",
+     "format": "one_question"
+    },
+    {
+     "id": "bge1-03",
+     "title": "Free spirits",
+     "hook": "If all your opinions match your friends', are they really yours?",
+     "angle": "A free spirit thinks differently from what their background expects. Example: the kid who questions the family religion or politics, respectfully.",
+     "format": "dialogue"
+    },
+    {
+     "id": "bge1-04",
+     "title": "Convictions are prisons",
+     "hook": "The person who never changes their mind has stopped thinking.",
+     "angle": "Fixed convictions can block truth more than lies. Example: someone defending a team or brand no matter what.",
+     "format": "reframe"
+    }
+   ]
+  },
+  {
+   "id": "bge2",
+   "title": "Part 2: The herd",
+   "episodes": [
+    {
+     "id": "bge2-01",
+     "title": "Herd morality",
+     "hook": "The crowd calls whatever is safe for the crowd 'good'.",
+     "angle": "Much morality protects the average from the exceptional. Example: the student mocked for studying because it makes others look bad.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "bge2-02",
+     "title": "Madness of groups",
+     "hook": "Madness is rare in people. In groups, it's the rule.",
+     "angle": "Crowds lose the sense individuals have. Example: a comment section piling on someone over a misunderstanding.",
+     "format": "mini_story"
+    },
+    {
+     "id": "bge2-03",
+     "title": "Standing out costs",
+     "hook": "Being yourself will cost you some people. Pay it.",
+     "angle": "Independence means accepting loneliness at times. Example: leaving the friend group that only gossips.",
+     "format": "challenge"
+    }
+   ]
+  },
+  {
+   "id": "bge3",
+   "title": "Part 3: Struggle and strength",
+   "episodes": [
+    {
+     "id": "bge3-01",
+     "title": "Don't fight monsters badly",
+     "hook": "If you fight monsters, be careful not to become one.",
+     "angle": "Fighting evil can turn you into it. Example: someone exposing a bully online who starts bullying too.",
+     "format": "reframe"
+    },
+    {
+     "id": "bge3-02",
+     "title": "Stare into the abyss",
+     "hook": "When you stare into the abyss, it stares back.",
+     "angle": "What you focus on shapes you. Example: doomscrolling bad news until you see the world as only bad.",
+     "format": "one_question"
+    },
+    {
+     "id": "bge3-03",
+     "title": "What doesn't kill you",
+     "hook": "Pain is not proof you're failing. It might be proof you're growing.",
+     "angle": "Hardship can strengthen a person who chooses to use it. Example: a lifter's sore muscles, a breakup that made someone kinder.",
+     "format": "mini_story"
+    },
+    {
+     "id": "bge3-04",
+     "title": "Comfort makes you small",
+     "hook": "Your comfort zone is slowly making you smaller.",
+     "angle": "Avoiding all difficulty weakens a person. Example: someone who stops ordering food by phone because texting is easier, then can't call at all.",
+     "format": "myth_buster"
+    }
+   ]
+  },
+  {
+   "id": "bge4",
+   "title": "Part 4: Create your own values",
+   "episodes": [
+    {
+     "id": "bge4-01",
+     "title": "Become who you are",
+     "hook": "You're not meant to find yourself. You're meant to create yourself.",
+     "angle": "Identity is made through choices, not discovered. Example: someone who 'isn't creative' until they draw every day for a year.",
+     "format": "reframe"
+    },
+    {
+     "id": "bge4-02",
+     "title": "Masters and slaves of values",
+     "hook": "Are your values yours, or did someone hand them to you?",
+     "angle": "Some values are created out of strength, others out of resentment. Example: calling success 'shallow' only after missing it.",
+     "format": "dialogue"
+    },
+    {
+     "id": "bge4-03",
+     "title": "Envy disguised as virtue",
+     "hook": "Sometimes 'I'd never want that' really means 'I can't have that'.",
+     "angle": "Resentment dresses itself up as moral superiority. Example: mocking the gym-goer while secretly wishing you went.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "bge4-04",
+     "title": "Live dangerously",
+     "hook": "Build your house on the slopes of a volcano.",
+     "angle": "A meaningful life requires risk. Example: quitting the safe but dead-end job to try the thing you care about.",
+     "format": "challenge"
+    }
+   ]
+  }
+ ]
+}

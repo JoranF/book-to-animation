@@ -1,0 +1,135 @@
+{
+ "book": "the-prince",
+ "note": "One narrow idea per Short. Public-domain book; hooks and examples in our own modern words.",
+ "chapters": [
+  {
+   "id": "prn1",
+   "title": "Part 1: See people as they are",
+   "episodes": [
+    {
+     "id": "prn1-01",
+     "title": "How people are vs how they should be",
+     "hook": "If you only see people as they should be, you'll get eaten alive.",
+     "angle": "Plan for how people actually act, not how they ought to. Example: the trusting roommate who never puts names on his food.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "prn1-02",
+     "title": "Feared or loved?",
+     "hook": "Is it better to be loved or feared? The answer is uncomfortable.",
+     "angle": "Love can be broken when it's convenient; fear of consequences holds. But never be hated. Example: two teachers, the pushover and the strict-but-fair one.",
+     "format": "one_question"
+    },
+    {
+     "id": "prn1-03",
+     "title": "Never be hated",
+     "hook": "Being feared is a tool. Being hated is a death sentence.",
+     "angle": "You can be strict without taking what people value. Example: a manager who enforces deadlines but never steals credit.",
+     "format": "reframe"
+    },
+    {
+     "id": "prn1-04",
+     "title": "Gratitude runs out",
+     "hook": "Don't build your plans on other people's gratitude.",
+     "angle": "People forget favours when interests change. Example: the friend you helped move who's busy when you need help.",
+     "format": "mini_story"
+    }
+   ]
+  },
+  {
+   "id": "prn2",
+   "title": "Part 2: Reputation and appearance",
+   "episodes": [
+    {
+     "id": "prn2-01",
+     "title": "Everyone sees, few touch",
+     "hook": "Everyone sees what you seem to be. Few know what you are.",
+     "angle": "Most judge by appearance, so manage how you come across. Example: the person who looks prepared in the meeting versus the one who actually is.",
+     "format": "reframe"
+    },
+    {
+     "id": "prn2-02",
+     "title": "Generosity can ruin you",
+     "hook": "Being too generous makes people hate you later.",
+     "angle": "Lavish giving can't last, and when it stops people feel robbed. Example: the boss who throws a huge party, then cuts bonuses.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "prn2-03",
+     "title": "Do the hard part at once",
+     "hook": "Bad news? Deliver it all at once. Good news? Give it drop by drop.",
+     "angle": "Harm done all at once is forgotten faster; benefits given slowly are savoured. Example: a coach who makes all the tough roster cuts on day one.",
+     "format": "challenge"
+    },
+    {
+     "id": "prn2-04",
+     "title": "Avoid flatterers",
+     "hook": "The people who agree with everything you say are the most dangerous.",
+     "angle": "Surround yourself with honest advisers, and ask them only when you want to know. Example: an artist whose friends call every song a hit.",
+     "format": "dialogue"
+    }
+   ]
+  },
+  {
+   "id": "prn3",
+   "title": "Part 3: Fortune and preparation",
+   "episodes": [
+    {
+     "id": "prn3-01",
+     "title": "Luck is half",
+     "hook": "Luck controls half your life. The other half is yours to build.",
+     "angle": "Fortune is like a river; build dams in calm weather. Example: saving money while things are good instead of after you lose the job.",
+     "format": "reframe"
+    },
+    {
+     "id": "prn3-02",
+     "title": "Prepare in calm times",
+     "hook": "The time to prepare for a storm is when the sun is out.",
+     "angle": "Most people only act once the crisis hits. Example: learning to code before your job gets automated.",
+     "format": "mini_story"
+    },
+    {
+     "id": "prn3-03",
+     "title": "Bold beats careful",
+     "hook": "When in doubt, act boldly.",
+     "angle": "Fortune favours those who move decisively. Example: the shy guy who asks first and the careful one who waited too long.",
+     "format": "dialogue"
+    }
+   ]
+  },
+  {
+   "id": "prn4",
+   "title": "Part 4: Rely on yourself",
+   "episodes": [
+    {
+     "id": "prn4-01",
+     "title": "Borrowed armor",
+     "hook": "Other people's armor will either be too big or crush you.",
+     "angle": "Depending on others' strength makes you weak. Example: a startup that relies on one big client.",
+     "format": "myth_buster"
+    },
+    {
+     "id": "prn4-02",
+     "title": "Build your own foundation",
+     "hook": "Whoever builds on other people's success falls with them.",
+     "angle": "Self-made foundations are slow but stable. Example: two influencers, one who rides trends, one who builds skills.",
+     "format": "mini_story"
+    },
+    {
+     "id": "prn4-03",
+     "title": "The fox and the lion",
+     "hook": "Be a fox to see the traps and a lion to scare the wolves.",
+     "angle": "You need both cleverness and strength. Example: a negotiator who reads the room and holds firm.",
+     "format": "reframe"
+    },
+    {
+     "id": "prn4-04",
+     "title": "Judge by results",
+     "hook": "People judge you by results, not by your excuses.",
+     "angle": "Outcomes outweigh intentions in other people's eyes. Example: the employee with the best reasons and the worst numbers.",
+     "format": "one_question"
+    }
+   ]
+  }
+ ]
+}
