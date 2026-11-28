@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from . import config, music, stage as stage_mod
+from . import assets, config, music, stage as stage_mod
 
 FPS = 15  # keep in sync with world.FPS; low on purpose for the old-console feel
 
@@ -62,9 +62,16 @@ def speech_beats(words: list[dict[str, Any]], start: float, end: float) -> list[
 def make_visuals(script: dict[str, Any], times: list[tuple[float, float]],
                  out_dir: Path, words: list[dict[str, Any]] | None = None) -> list[dict[str, Path | None]]:
     scenes = script["scenes"]
+    # generated characters, props and sets from the asset library (rebuilt
+    # first when marked for rebuild); their recipes travel inside the stage
+    library = assets.prepare([s.get("stage") or stage_mod.DEFAULT for s in scenes], out_dir.name)
+    script["assets_used"] = {name: entry["version"] for name, entry in library.items()}
 
     def work(i: int) -> dict[str, Path | None]:
         stage = dict(scenes[i].get("stage") or stage_mod.DEFAULT)
+        own = assets.for_stage(stage, library)
+        if own:
+            stage["assets"] = own
         stage["seed"] = i      # same action in another shot gets other key poses
         if words:
             stage["beats"] = speech_beats(words, *times[i])

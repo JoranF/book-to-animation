@@ -120,15 +120,27 @@ def _where(ref: Any, actors: list[dict[str, Any]], what: str) -> list[float]:
     return list(ref)
 
 
-def validate(stage: Any) -> dict[str, Any]:
-    """Raise ValueError with a clear message when a stage uses unknown parts."""
+def validate(stage: Any, library: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Raise ValueError with a clear message when a stage uses unknown parts.
+    `library` is assets.known(): the kit plus everything in the asset library."""
+    if library is None:
+        from . import assets
+        library = assets.known()
+    sets = sorted(set(SETS) | library["set"])
+    props = sorted(set(PROPS) | library["prop"])
+    who = sorted(set(WHO) | library["character"])
+    heights = {**HEIGHTS, **library.get("heights", {})}
     if not isinstance(stage, dict):
         raise ValueError("stage must be an object")
-    if stage.get("set") not in SETS:
-        raise ValueError(f"unknown set '{stage.get('set')}', choose from {SETS}")
-    for prop in stage.setdefault("props", []):
-        if prop.get("type") not in PROPS:
-            raise ValueError(f"unknown prop type '{prop.get('type')}', choose from {PROPS}")
+    if stage.get("set") not in sets:
+        raise ValueError(f"unknown set '{stage.get('set')}', choose from {sets} or add it to new_assets")
+    if not isinstance(stage.setdefault("props", []), list):
+        raise ValueError("props must be a list")
+    for prop in stage["props"]:
+        if not isinstance(prop, dict):
+            raise ValueError("every prop must be an object")
+        if prop.get("type") not in props:
+            raise ValueError(f"unknown prop type '{prop.get('type')}', choose from {props} or add it to new_assets")
         if prop["type"] == "path":
             _vec(prop.get("from"), (2,), "path.from")
             _vec(prop.get("to"), (2,), "path.to")
@@ -144,8 +156,8 @@ def validate(stage: Any) -> dict[str, Any]:
     if len(actors) > 8:
         raise ValueError("at most 8 actors per scene")
     for actor in actors:
-        if actor.get("who") not in WHO:
-            raise ValueError(f"unknown actor '{actor.get('who')}', choose from {WHO}")
+        if actor.get("who") not in who:
+            raise ValueError(f"unknown actor '{actor.get('who')}', choose from {who} or add it to new_assets")
         if actor.setdefault("action", "idle") not in ACTIONS:
             raise ValueError(f"unknown action '{actor['action']}', choose from {ACTIONS}")
         if "actions" in actor:
@@ -177,10 +189,9 @@ def validate(stage: Any) -> dict[str, Any]:
             raise ValueError("actor.carry can only be 'big_backpack'")
     camera = stage.setdefault("camera", {})
     if "focus" in camera and "target" not in camera:
-        who = camera["focus"]
-        point = _where(who, actors, "camera.focus")
+        point = _where(camera["focus"], actors, "camera.focus")
         base = point[2] if len(point) > 2 else 0.0
-        camera["target"] = [point[0], point[1], round(base + HEIGHTS.get(who, 1.6) * 0.72, 2)]
+        camera["target"] = [point[0], point[1], round(base + heights.get(camera["focus"], 1.6) * 0.72, 2)]
         camera.setdefault("dist", 2.3)
         camera.setdefault("height", camera["target"][2] + 0.25)
     if camera.setdefault("move", "push_in") not in CAMERA_MOVES:

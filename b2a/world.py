@@ -198,8 +198,8 @@ class Character:
     """A segmented low-poly figure: body parts hang from joints we can turn."""
 
     def __init__(self, kind: str, pos=(0.0, 0.0), face: float = 0.0, mood: str | None = None,
-                 carry: str | None = None):
-        look = LOOKS[kind]
+                 carry: str | None = None, look: dict[str, Any] | None = None):
+        look = look or LOOKS[kind]
         self.kind, self.look = kind, look
         s = look["scale"]
         self.s = s
@@ -644,6 +644,75 @@ PROPS: dict[str, Callable] = {
 }
 
 
+# --- assets from the library ---------------------------------------------
+# Generated assets (see assets.py) arrive inside the stage as recipes:
+# stage["assets"] = {name: {"kind": "prop"|"set"|"character", "recipe": {...}}}.
+
+def build_parts(parts: list[dict[str, Any]], parent=None) -> list[Any]:
+    out = []
+    for part in parts:
+        obj = shape(part["shape"], part["color"], tuple(part["size"]), tuple(part.get("at", (0, 0, 0))),
+                    tuple(part.get("rot", (0, 0, 0))), parent=parent, glow=part.get("glow", 0.0),
+                    sides=int(part.get("sides", 6)), top=part.get("top", 1.0))
+        obj["moves"] = bool(part.get("moves"))
+        out.append(obj)
+    return out
+
+
+def library_prop(recipe: dict[str, Any], p: dict[str, Any]) -> Updater | None:
+    pos = list(p.get("pos", (0, 0)))
+    z = pos[2] if len(pos) > 2 else p.get("z", 0.0)
+    anchor = joint("asset", (pos[0], pos[1], z))
+    scale = p.get("scale", 1.0)
+    anchor.scale = (scale, scale, scale)
+    deg(anchor, z=p.get("turn", 0.0))
+    objs = build_parts(recipe["parts"], anchor)
+    motion = recipe.get("motion")
+    if not motion:
+        return None
+    moving = [o for o in objs if o["moves"]] or objs
+    kind, speed, amount = motion["type"], motion.get("speed", 1.5), motion.get("amount", 0.1)
+    base = [(o.location.copy(), o.rotation_euler.copy(), o.scale.copy()) for o in moving]
+    phase = pos[0] * 1.7
+
+    def update(t, T):
+        wave = sin(t * speed * 2 + phase)
+        for obj, (loc, rot, size) in zip(moving, base):
+            if kind == "bob":
+                obj.location.z = loc.z + amount * wave
+            elif kind == "spin":
+                obj.rotation_euler.z = rot.z + t * speed * 2
+            elif kind == "sway":
+                obj.rotation_euler.y = rot.y + amount * wave
+            elif kind == "pulse":
+                k = 1 + amount * wave
+                obj.scale = (size.x * k, size.y * k, size.z * k)
+    return update
+
+
+def library_set(recipe: dict[str, Any]) -> list[Updater]:
+    light = recipe.get("light", {})
+    sky(recipe["sky"], tuple(light.get("angle", (50, 0, 30))), light.get("color", "#fff6dd"), light.get("power", 2.4))
+    if recipe.get("room"):
+        room(recipe["room"]["floor"], recipe["room"]["floor2"], recipe["room"]["wall"])
+    else:
+        ground(recipe["ground"]["color"], recipe["ground"].get("checker"))
+    build_parts(recipe.get("parts", []))
+    updaters = []
+    for spec in recipe.get("props", []):
+        updater = PROPS[spec["type"]](spec)
+        if updater:
+            updaters.append(updater)
+    return updaters
+
+
+def character_look(recipe: dict[str, Any]) -> dict[str, Any]:
+    look = {"scale": 1.0, "wide": 1.0, "mood": "plain", "hair": None, "hair_style": "bald"}
+    look.update(recipe)
+    look.setdefault("shoe_tip", look["shoes"])
+    return look
+
+
 # --- sets -----------------------------------------------------------------
 
 def sky(top: str, sun_angle=(50, 0, 30), sun_color="#ffffff", sun_power=2.6) -> None:
@@ -778,15 +847,27 @@ def build_scene(stage: dict[str, Any]) -> list[Updater]:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     updaters: list[Updater] = []
 
-    SETS[stage.get("set", "field")](stage)
+    library = stage.get("assets") or {}
+
+    def recipe(kind: str, name: str) -> dict[str, Any] | None:
+        entry = library.get(name)
+        return entry["recipe"] if entry and entry.get("kind") == kind and entry.get("recipe") else None
+
+    set_name = stage.get("set", "field")
+    if recipe("set", set_name):
+        updaters.extend(library_set(recipe("set", set_name)))
+    else:
+        SETS[set_name](stage)
     for spec in stage.get("props", []):
-        updater = PROPS[spec["type"]](spec)
+        own = recipe("prop", spec["type"])
+        updater = library_prop(own, spec) if own else PROPS[spec["type"]](spec)
         if updater:
             updaters.append(updater)
     base_seed = int(stage.get("seed", 0)) ^ zlib.crc32(json.dumps(stage, sort_keys=True).encode())
     for index, spec in enumerate(stage.get("actors", [])):
+        own = recipe("character", spec["who"]) if spec["who"] not in ("youth", "philosopher") else None
         char = Character(spec["who"], spec.get("pos", (0, 0)), spec.get("face", 0.0),
-                         spec.get("mood"), spec.get("carry"))
+                         spec.get("mood"), spec.get("carry"), character_look(own) if own else None)
         name = spec.get("action", "idle")
         if name in LOCOMOTION:
             def animate(t, T, char=char, act=LOCOMOTION[name], spec=spec):

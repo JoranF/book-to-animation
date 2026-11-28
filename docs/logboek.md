@@ -92,3 +92,20 @@ verandering een regel toe (datum, wat, waarom, link naar PR/commit).
   duidelijkheidsdrempel, in het dashboard en op book.joranit.com. Opgeslagen in
   `DATA_DIR/model_settings.json` (`b2a/settings.py`), API `GET/PUT /api/settings/models`;
   de env-variabelen blijven de standaard. Geldt vanaf de volgende Short.
+
+## 28-11-2026: asset library voor personages, props en achtergronden
+
+- Joran: "worden personages, items en achtergronden opgeslagen zodat we ze kunnen
+  hergebruiken, en als er iets nieuws nodig is of iets opnieuw moet, automatisch
+  toevoegen of opnieuw maken?" Antwoord: de vaste kit (cast, 7 sets, 23 props) stond
+  al in code en zag er dus altijd hetzelfde uit, maar iets nieuws kon niet: de regie
+  moest zich behelpen met de kit.
+- Nieuw: **asset library** (`b2a/assets.py`, zie [asset-library.md](asset-library.md)).
+  De 3D-regie mag nieuwe props, sets en (zwijgende) personages aanvragen; eerst wordt
+  op naam, alias en tags hergebruikt, anders ontwerpt `ASSET_MODEL` (Sonnet 5.5) een
+  low-poly recept dat in `/data/assets` wordt bewaard, met preview-PNG. Assets kun je
+  markeren voor rebuild (met notitie), ook ingebouwde props en sets; de Jongeman en de
+  Filosoof zitten op slot. Beheer via book.joranit.com (*Asset library*), de API
+  `/api/assets` en `python -m b2a.cli assets`. Nieuwe env-namen: `ASSET_MODEL`,
+  `ASSET_EFFORT`, `ASSET_MAX_NEW`, `ASSET_PREVIEWS`. `meta.json` krijgt
+  `assets_made` en `assets_used`.

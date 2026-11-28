@@ -20,6 +20,7 @@ het bijbehorende bestand aan en zet je een regel in het [logboek](logboek.md).
 | Begrijpen hoe een Short gemaakt wordt | [pipeline.md](pipeline.md) |
 | De GPU en ACE-Step-muziek aan de praat krijgen | [gpu-acestep.md](gpu-acestep.md) |
 | Postiz, YouTube en TikTok koppelen | [postiz-en-publiceren.md](postiz-en-publiceren.md) |
+| Weten welke personages, props en achtergronden er zijn, en ze laten (her)maken | [asset-library.md](asset-library.md) |
 | Feedback geven op Shorts, leren van analytics, automatisch posten per account | [feedback-loop-en-autopost.md](feedback-loop-en-autopost.md) |
 | Iets is stuk (521, 502, lege tab, build faalt) | [problemen-oplossen.md](problemen-oplossen.md) |
 | Zien wat er wanneer gedaan is | [logboek.md](logboek.md) |
