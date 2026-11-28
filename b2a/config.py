@@ -25,6 +25,12 @@ CHECK_MODEL = os.environ.get("CHECK_MODEL", "claude-sonnet-5-5")
 CHECK_EFFORT = os.environ.get("CHECK_EFFORT", "low")
 ANALYSIS_MODEL = os.environ.get("ANALYSIS_MODEL", "claude-sonnet-5-5")
 ANALYSIS_EFFORT = os.environ.get("ANALYSIS_EFFORT", "medium")
+# New characters, props and sets for the asset library (b2a/assets.py): made
+# once when a script needs them, then reused by every later Short.
+ASSET_MODEL = os.environ.get("ASSET_MODEL", "claude-sonnet-5-5")
+ASSET_EFFORT = os.environ.get("ASSET_EFFORT", "medium")
+ASSET_MAX_NEW = int(os.environ.get("ASSET_MAX_NEW", "3"))   # new assets per Short, 0 = only the library
+
 # Clarity check: a score from 1 to 10; below CLARITY_MIN the writer gets one
 # chance to fix the lines the checker did not understand. 0 turns it off.
 CLARITY_MIN = int(os.environ.get("CLARITY_MIN", "7"))

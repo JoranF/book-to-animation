@@ -71,6 +71,9 @@ YouTube en TikTok koppelen: zie [postiz-en-publiceren.md](postiz-en-publiceren.m
    | `STAGE_MODEL` / `STAGE_EFFORT` | nee | Maakt de 3D-regie per scène. Standaard `claude-sonnet-5-5`, `medium` (goedkoopst: `claude-haiku-5-5`) |
    | `CHECK_MODEL` / `CHECK_EFFORT` | nee | Duidelijkheidscheck. Standaard `claude-sonnet-5-5`, `low` |
    | `CLARITY_MIN` | nee | Score (1-10) waaronder de schrijver één herkansing krijgt. Standaard 7, `0` = check uit |
+   | `ASSET_MODEL` / `ASSET_EFFORT` | nee | Maakt nieuwe props, sets en personages voor de asset library. Standaard `claude-sonnet-5-5`, `medium` |
+   | `ASSET_MAX_NEW` | nee | Hoeveel nieuwe assets één Short mag laten maken. Standaard 3, `0` = alleen kit en bibliotheek |
+   | `ASSET_PREVIEWS` | nee | `0` = geen preview-PNG renderen bij nieuwe assets. Standaard aan |
    | `ANALYSIS_MODEL` / `ANALYSIS_EFFORT` | nee | Trend-brief en playbook. Standaard `claude-sonnet-5-5`, `medium` |
    | `ELEVENLABS_VOICE_NARRATOR` / `_PHILOSOPHER` / `_YOUTH` | nee | Voice-id's per personage |
    | `ELEVENLABS_MODEL`, `ELEVENLABS_FALLBACK_MODEL`, `ELEVENLABS_STABILITY` | nee | Standaard `eleven_v4`, `eleven_multilingual_v2`, 0.4 |

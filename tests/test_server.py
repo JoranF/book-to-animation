@@ -96,7 +96,7 @@ def test_models_per_step_can_be_chosen_in_the_dashboard(monkeypatch, tmp_path):
         monkeypatch.setattr(config, attr, getattr(config, attr))
     client = TestClient(server.app)
     view = client.get("/api/settings/models", auth=ME).json()
-    assert [s["key"] for s in view["steps"]] == ["script", "staging", "clarity", "analysis"]
+    assert [s["key"] for s in view["steps"]] == ["script", "staging", "clarity", "assets", "analysis"]
     assert {m["id"] for m in view["models"]} >= {"claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"}
     staging = next(s for s in view["steps"] if s["key"] == "staging")
     assert staging["model"] == staging["default_model"] == settings.DEFAULTS["STAGE_MODEL"]

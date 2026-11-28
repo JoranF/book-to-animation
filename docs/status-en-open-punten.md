@@ -19,6 +19,10 @@ Stand: 27-11-2026. Werk dit bij als iets klaar is of erbij komt.
   met mocks getest. Bij de eerste echte Short: `cost_breakdown_usd`, `clarity` en de
   animatie vergelijken met een oude Short. Is de regie zwakker, zet `STAGE_MODEL`
   terug op `claude-opus-5-5`.
+- De asset library (nieuwe props/sets/personages door Claude, rebuild) is getest met
+  mocks en echte Blender-renders van voorbeeldrecepten, maar nog niet met een echte
+  Claude-aanroep. Bij de eerste Short die iets nieuws vraagt: preview bekijken in
+  *Asset library* op book.joranit.com en zo nodig "Rebuild" met een notitie.
 - De stemprijs in `meta.json` is een aanname (`PRICE_TTS_PER_1K_CHARS`).
 
 ## Open

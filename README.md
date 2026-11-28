@@ -28,6 +28,12 @@ stores the cost per step (`cost_breakdown_usd`); the voice price is an
 assumption, see `.env.example`.
 Rendering takes roughly 6 to 10 minutes on 4 CPU cores, no GPU needed.
 
+Characters, props and sets are kept in an asset library (`b2a/assets.py`):
+the fixed kit in code plus assets Claude makes (`ASSET_MODEL`) when a script
+needs something new. They are saved in `DATA_DIR/assets`, reused by name and
+tags, and can be marked for rebuild; the youth and the philosopher are locked.
+See `docs/asset-library.md` (Dutch), `/api/assets` and `python -m b2a.cli assets`.
+
 ### Episodes
 
 *The Courage to Be Disliked* has 45 planned episodes over the five nights of

@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, learn, music, pipeline, plan as plan_mod, script as script_mod, settings, trends
+from . import assets, config, learn, music, pipeline, plan as plan_mod, script as script_mod, settings, trends
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -278,6 +278,127 @@ def put_model_settings(body: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
 
 
+# --- the asset library: characters, props and sets kept between Shorts (see assets.py) ---
+
+asset_jobs: dict[str, dict[str, Any]] = {}
+
+
+class AssetRebuild(BaseModel):
+    note: str = Field("", max_length=500)
+    now: bool = False                     # false: rebuilt the next time a Short uses it
+
+
+class NewAsset(BaseModel):
+    kind: Literal["prop", "set", "character"]
+    name: str = Field(min_length=1, max_length=40)
+    description: str = Field(min_length=3, max_length=300)
+    tags: list[str] = []
+
+
+class AssetEdit(BaseModel):
+    tags: list[str] | None = None
+    aliases: list[str] | None = None
+    description: str | None = Field(None, max_length=200)
+
+
+def _asset_key(kind: str, name: str) -> tuple[str, str]:
+    if kind not in assets.KINDS or assets.slug(name) != name:
+        raise HTTPException(404, "Unknown asset")
+    return kind, name
+
+
+def _asset_job(key: str, work) -> None:
+    def run() -> None:
+        asset_jobs[key] = {"status": "working", "error": None}
+        try:
+            settings.apply()
+            work()
+            asset_jobs[key] = {"status": "done", "error": None}
+        except Exception as exc:  # noqa: BLE001
+            asset_jobs[key] = {"status": "error", "error": str(exc)[:300]}
+    threading.Thread(target=run, daemon=True).start()
+
+
+@app.get("/api/assets", dependencies=[Depends(auth)])
+def get_assets() -> dict[str, Any]:
+    """Every character, prop and set: built-in and generated, with use counts and rebuild flags."""
+    items = [{k: v for k, v in a.items() if k not in ("recipe", "history")} for a in assets.catalog()]
+    return {"assets": items, "jobs": asset_jobs}
+
+
+@app.post("/api/assets", dependencies=[Depends(auth)])
+def new_asset(body: NewAsset) -> dict[str, Any]:
+    """Make an asset by hand (normally the stager asks for new ones itself). Reuses a match."""
+    name = assets.slug(body.name)
+    if not name:
+        raise HTTPException(422, "name needs letters or digits")
+    if assets.find(body.kind, name, body.description, body.tags):
+        return {"status": "exists", "asset": assets.find(body.kind, name, body.description, body.tags)}
+    _asset_job(f"{body.kind}/{name}", lambda: assets.ensure(body.kind, name, body.description, body.tags))
+    return {"status": "working", "kind": body.kind, "name": name}
+
+
+@app.get("/api/assets/{kind}/{name}", dependencies=[Depends(auth)])
+def get_asset(kind: str, name: str) -> dict[str, Any]:
+    asset = assets.get(*_asset_key(kind, name))
+    if not asset:
+        raise HTTPException(404, "Unknown asset")
+    return asset
+
+
+@app.get("/api/assets/{kind}/{name}/preview", dependencies=[Depends(auth)])
+def asset_preview(kind: str, name: str) -> FileResponse:
+    path = assets.preview_path(*_asset_key(kind, name))
+    if not path.exists():
+        raise HTTPException(404, "No preview yet")
+    return FileResponse(path)
+
+
+@app.post("/api/assets/{kind}/{name}/rebuild", dependencies=[Depends(auth)])
+def rebuild_asset(kind: str, name: str, body: AssetRebuild) -> dict[str, Any]:
+    """Mark for rebuild (made again the next time a Short uses it), or rebuild right away."""
+    kind, name = _asset_key(kind, name)
+    try:
+        asset = assets.mark_rebuild(kind, name, body.note)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    if body.now:
+        _asset_job(f"{kind}/{name}", lambda: assets.rebuild(kind, name, body.note))
+        return {"status": "working", "asset": asset}
+    return {"status": "marked", "asset": asset}
+
+
+@app.delete("/api/assets/{kind}/{name}/rebuild", dependencies=[Depends(auth)])
+def unmark_asset(kind: str, name: str) -> dict[str, Any]:
+    kind, name = _asset_key(kind, name)
+    try:
+        return {"asset": assets.mark_rebuild(kind, name, on=False)}
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+
+
+@app.patch("/api/assets/{kind}/{name}", dependencies=[Depends(auth)])
+def edit_asset(kind: str, name: str, body: AssetEdit) -> dict[str, Any]:
+    """Change tags, aliases (other names it is found by) or the description of a generated asset."""
+    try:
+        return assets.edit(*_asset_key(kind, name), body.tags, body.aliases, body.description)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.delete("/api/assets/{kind}/{name}", dependencies=[Depends(auth)])
+def delete_asset(kind: str, name: str) -> dict[str, Any]:
+    """Delete a generated asset; for a built-in name the original comes back."""
+    kind, name = _asset_key(kind, name)
+    if assets.load(kind, name) is None:
+        raise HTTPException(404, "Only generated assets can be deleted")
+    return {"asset": assets.reset(kind, name)}
+
+
 @app.get("/api/learnings", dependencies=[Depends(auth)])
 def get_learnings() -> dict[str, Any]:
     """What the next script is told: the owner's notes, the numbers and Claude's playbook."""
@@ -366,6 +487,11 @@ video{width:100%;border-radius:8px;background:#000}small{color:#aaa}.job{padding
 <details id=models><summary>Claude models per step</summary><form onsubmit="saveModels(event)"><div id=modelrows></div>
 <label>Clarity minimum (0 = check off) <input name=clarity_min type=number min=0 max=10></label>
 <button>Save models</button> <small id=modelmsg></small></form></details>
+<details id=assetbox><summary>Asset library (characters, props, sets)</summary>
+<small>Built-in assets are the fixed kit; generated ones were made by Claude when a script needed them and are reused in every Short.
+Rebuild = made again the next time a Short uses it (or now). The youth and the philosopher are locked.</small>
+<select id=assetkind onchange="assetList()"><option value="">All kinds</option><option>character</option><option>prop</option><option>set</option></select>
+<div class=grid id=assets></div></details>
 <div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div>
 <script>
 const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts'),epEl=document.getElementById('episode');
@@ -397,7 +523,23 @@ async function saveModels(e){e.preventDefault();const body={};for(const [k,v] of
 if(k==='clarity_min'){body.clarity_min=Number(v);continue}const [step,f]=k.split('.');(body[step]=body[step]||{})[f]=v}
 const r=await fetch('/api/settings/models',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
 document.getElementById('modelmsg').textContent=r.ok?'Saved, used from the next Short':'Not saved: '+(await r.json()).detail;models()}
-plan();load();models();setInterval(()=>{load();plan()},5000)</script>"""
+let assetData=[];
+async function assetList(fetchNew=true){if(fetchNew){const d=await (await fetch('/api/assets')).json();assetData=d.assets;window.assetJobs=d.jobs}
+const kind=document.getElementById('assetkind').value,jobs=window.assetJobs||{};
+document.getElementById('assets').innerHTML=assetData.filter(a=>!kind||a.kind===kind).map(a=>{const key=a.kind+'/'+a.name,j=jobs[key];
+return `<div class=job>${a.has_preview?`<img style="width:100%;image-rendering:pixelated;border-radius:6px" loading=lazy src="/api/assets/${esc(key)}/preview?v=${esc(a.version||0)}">`:''}
+<b>${esc(a.name)}</b> <small>${esc(a.kind)}, ${esc(a.source==='generated'?(a.overrides_builtin?'replaces built-in':'generated')+' v'+a.version+', used '+(a.used||0)+'x':a.source==='builtin_pending'?'built-in, waiting for rebuild':'built-in')}</small><br>
+<small>${esc(a.description)}</small><br><small>${esc((a.tags||[]).join(', '))}</small>
+${j?`<br><small>${esc(j.status)} ${esc(j.error||'')}</small>`:''}
+${a.locked?'<br><small>locked (recurring character)</small>':a.rebuild?`<br><small>marked for rebuild: ${esc(a.rebuild_note||'no note')}</small><button onclick="unmark('${esc(key)}')">Cancel rebuild</button>`:
+`<input id="note-${esc(key)}" placeholder="What should change? (optional)"><button onclick="rebuild('${esc(key)}',false)">Rebuild next time</button><button onclick="rebuild('${esc(key)}',true)">Rebuild now</button>`}
+${a.source==='generated'||a.source==='builtin_pending'?`<button style="background:#555;color:#eee" onclick="resetAsset('${esc(key)}')">${a.overrides_builtin||a.source==='builtin_pending'?'Back to built-in':'Delete'}</button>`:''}</div>`}).join('')}
+async function rebuild(key,now){const note=document.getElementById('note-'+key).value;
+await fetch('/api/assets/'+key+'/rebuild',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({note,now})});assetList()}
+async function unmark(key){await fetch('/api/assets/'+key+'/rebuild',{method:'DELETE'});assetList()}
+async function resetAsset(key){if(!confirm('Remove the generated version of '+key+'?'))return;await fetch('/api/assets/'+key,{method:'DELETE'});assetList()}
+document.getElementById('assetbox').ontoggle=e=>{if(e.target.open)assetList()};
+plan();load();models();setInterval(()=>{load();plan();if(document.getElementById('assetbox').open&&Object.values(window.assetJobs||{}).some(j=>j.status==='working'))assetList()},5000)</script>"""
 
 
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(auth)])

@@ -19,6 +19,8 @@ STEPS = {
                 "Builds every scene from the 3D kit: set, props, poses, camera. Long JSON, most tokens."),
     "clarity": ("Clarity check", "CHECK_MODEL", "CHECK_EFFORT",
                 "A first-time viewer scores the lines 1-10; below the minimum the dialogue is fixed once."),
+    "assets": ("New assets", "ASSET_MODEL", "ASSET_EFFORT",
+               "Makes a new character, prop or set when a script needs one; it is saved and reused after that."),
     "analysis": ("Trends and playbook", "ANALYSIS_MODEL", "ANALYSIS_EFFORT",
                  "Weekly trend brief and the rules learned from the channel's numbers."),
 }

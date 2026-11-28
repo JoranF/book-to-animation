@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from . import music, pipeline, plan as plan_mod, script as script_mod, settings, sfx, trends
+from . import assets, music, pipeline, plan as plan_mod, script as script_mod, settings, sfx, trends
 
 
 def main() -> None:
@@ -28,6 +28,12 @@ def main() -> None:
     sub.add_parser("sfx", help="make the retro sound effect library")
     tracks = sub.add_parser("music", help="fill the ACE-Step music library (needs ACESTEP_URL)")
     tracks.add_argument("--mood", action="append", choices=list(music.MOODS))
+    lib = sub.add_parser("assets", help="the asset library: list, rebuild, reset, preview")
+    lib.add_argument("action", choices=["list", "rebuild", "unmark", "reset", "preview", "new"])
+    lib.add_argument("name", nargs="?", help="asset name, e.g. smartphone")
+    lib.add_argument("--kind", choices=list(assets.KINDS), default="prop")
+    lib.add_argument("--note", default="", help="what should change (rebuild) or what it is (new)")
+    lib.add_argument("--now", action="store_true", help="rebuild right away instead of the next time it is used")
     args = parser.parse_args()
     settings.apply()   # the models chosen in the dashboard, if any
 
@@ -38,6 +44,33 @@ def main() -> None:
         meta = pipeline.make_short(args.book, args.topic, args.idea, args.id, script,
                                    progress=lambda step: print(f"[b2a] {step}"), episode_id=args.episode)
         print(json.dumps(meta, indent=2))
+    elif args.cmd == "assets":
+        if args.action == "list":
+            for a in assets.catalog():
+                flag = " [rebuild]" if a.get("rebuild") else " [locked]" if a.get("locked") else ""
+                print(f"{a['kind']:<9} {a['name']:<22} {a['source']:<15} v{a.get('version', '-')} "
+                      f"used {a.get('used', 0)}{flag}  {a.get('description', '')}")
+            return
+        if not args.name:
+            parser.error("give the asset name")
+        if args.action == "new":
+            asset, made = assets.ensure(args.kind, args.name, args.note)
+            print(("made " if made else "reused ") + f"{asset['kind']} '{asset['name']}'")
+        elif args.action == "rebuild":
+            if args.now:
+                assets.mark_rebuild(args.kind, args.name, args.note)
+                asset = assets.rebuild(args.kind, args.name, args.note)
+                print(f"rebuilt {args.kind} '{args.name}', now v{asset['version']}")
+            else:
+                assets.mark_rebuild(args.kind, args.name, args.note)
+                print(f"{args.kind} '{args.name}' is rebuilt the next time a Short uses it")
+        elif args.action == "unmark":
+            assets.mark_rebuild(args.kind, args.name, on=False)
+        elif args.action == "reset":
+            assets.reset(args.kind, args.name)
+        elif args.action == "preview":
+            asset = assets.get(args.kind, args.name)
+            print(assets.make_preview(asset) if asset else f"no {args.kind} '{args.name}'")
     elif args.cmd == "episodes":
         made = pipeline.made_episodes(args.book)
         for ep in plan_mod.episodes(args.book):

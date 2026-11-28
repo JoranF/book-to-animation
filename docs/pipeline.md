@@ -10,9 +10,9 @@ Dit is de uitleg in gewone taal, voor wie het moet leren.
 | # | Stap | Wat gebeurt er | Code |
 | --- | --- | --- | --- |
 | 0 | **Episodeplan** | Het boek is opgeknipt in hoofdstukken ("nachten") met per hoofdstuk afleveringen. Elke aflevering is één smal idee met een eigen hook, invalshoek en format (myth_buster, mini_story, one_question, dialogue, challenge, reframe). *The Courage to Be Disliked* heeft er 45 (`n1-01` t/m `n5-10`). "Next" pakt de eerste die nog niet gemaakt is, en de hoofdstukken wisselen elkaar af | `books/<boek>/episodes.json`, `b2a/plan.py` |
-| 1 | **Script** | In drie stappen. (a) **Dialoog** (Opus 5.5): een snel gesprek tussen de Jongeman en de Filosoof over één alledaagse situatie, in eigen woorden, met regie voor de stem (`[sighs]`, `[pause]`), een beeldomschrijving per scène en een muziekstemming. (b) **Duidelijkheidscheck** (Sonnet 5.5): een "kijker die het idee nooit hoorde" geeft een score 1-10 en noemt verwarrende zinnen; onder de 7 herschrijft de schrijver één keer. (c) **3D-regie** (Sonnet 5.5): per scène de "stage": set, props, wie staat waar, welke beweging, welke camera | `b2a/llm.py`, `b2a/script.py`, `b2a/stage.py` |
+| 1 | **Script** | In drie stappen. (a) **Dialoog** (Opus 5.5): een snel gesprek tussen de Jongeman en de Filosoof over één alledaagse situatie, in eigen woorden, met regie voor de stem (`[sighs]`, `[pause]`), een beeldomschrijving per scène en een muziekstemming. (b) **Duidelijkheidscheck** (Sonnet 5.5): een "kijker die het idee nooit hoorde" geeft een score 1-10 en noemt verwarrende zinnen; onder de 7 herschrijft de schrijver één keer. (c) **3D-regie** (Sonnet 5.5): per scène de "stage": set, props, wie staat waar, welke beweging, welke camera. Ontbreekt er iets, dan wordt het als nieuw asset gemaakt en bewaard ([asset-library.md](asset-library.md)) | `b2a/llm.py`, `b2a/script.py`, `b2a/stage.py` |
 | 2 | **Stem** | ElevenLabs Eleven v4 spreekt elke zin in met de stem van dat personage, met tijdstempels per woord voor de captions. Weigert v4, dan Multilingual v2; zonder key de gratis Piper-stem | `b2a/voice.py` |
-| 3 | **Beeld** | Headless Blender bouwt de low-poly personages en sets in code en rendert elke scène (360x640, 15 fps, CPU). Mond beweegt bij praten, luisteraar reageert (schrikken, facepalm, lachen), camera wisselt tussen two-shot en close-ups | `b2a/world.py`, `b2a/blender_render.py`, `b2a/visuals.py` |
+| 3 | **Beeld** | Headless Blender bouwt de low-poly personages en sets (vaste kit in code plus de gegenereerde assets uit `/data/assets`) en rendert elke scène (360x640, 15 fps, CPU). Mond beweegt bij praten, luisteraar reageert (schrikken, facepalm, lachen), camera wisselt tussen two-shot en close-ups | `b2a/world.py`, `b2a/blender_render.py`, `b2a/visuals.py` |
 | 4 | **Montage** | FFmpeg knipt op de stem, legt het CRT-filter erover, brandt captions woord voor woord in (font Press Start 2P), mixt retro-geluidseffecten en muziek, en normaliseert het volume | `b2a/render.py`, `b2a/sfx.py`, `b2a/music.py` |
 
 Een Short rendert in ~6-10 minuten op 4 cores. Kosten: alleen Claude en
@@ -66,6 +66,7 @@ python -m b2a.cli trends                      # trend research
 python -m b2a.cli sfx                         # hele SFX-bibliotheek maken
 python -m b2a.cli music                       # muziekbibliotheek vullen (ACE-Step)
 python -m b2a.cli plan --book <slug>          # episodeplan voor een nieuw boek
+python -m b2a.cli assets list                 # asset library (zie asset-library.md)
 ```
 
 In Dokploy open je een shell in de container via de app → *Docker Terminal*.
@@ -75,8 +76,10 @@ In Dokploy open je een shell in de container via de app → *Docker Terminal*.
 1. Maak `books/<slug>/book.json` (titel, auteur, hoofdstukken, personages, trend-zoekwoorden).
 2. `python -m b2a.cli plan --book <slug>` laat Claude een episodeplan maken.
 3. **Lees het plan zelf door**, pas aan wat niet klopt, en commit het.
-4. Nieuwe sets, props of bewegingen nodig? Voeg ze toe in zowel
-   `b2a/world.py` (de vormen) als `b2a/stage.py` (de catalogus die Claude krijgt).
+4. Nieuwe sets, props of personages worden automatisch gemaakt als een script
+   ze nodig heeft ([asset-library.md](asset-library.md)). Nieuwe *bewegingen*, of iets
+   dat vast in de kit moet, voeg je toe in zowel `b2a/world.py` (de vormen) als
+   `b2a/stage.py` (de catalogus die Claude krijgt).
 
 ## Regels voor de inhoud
 

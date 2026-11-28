@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from . import config, llm, music, plan as plan_mod, stage as stage_mod
+from . import assets, config, llm, music, plan as plan_mod, stage as stage_mod
 from .voice import strip_tags
 
 # The script is written in three steps (see write_script):
@@ -79,7 +79,7 @@ before the last line. Use "..." for a trailing-off thought and a dash for a \
 cut-off. At most 2 tags per line, none on most narrator lines. Tags are not \
 shown in the captions and do not count as words.
 - "image": one sentence saying what we see, so a 3D artist can build it \
-from this kit: {kit}. Whoever speaks must be in the picture (the narrator \
+from this kit: {kit}. When the situation really needs a concrete thing, place or extra person that is not in the kit (a phone, a classroom, a waiter), just name it plainly: it is built once and kept for later episodes. Whoever speaks must be in the picture (the narrator \
 speaks over any picture). Show the everyday situation and make the idea \
 visible as a simple picture (a weight, a door, a path, a tower of papers...). \
 Change the place at least twice.
@@ -117,14 +117,19 @@ The characters:
 
 {guide}
 
+{library}
+
+NEW ASSETS: when a scene really needs a thing, a place or an extra person that is not in the kit or the library above, give it a short snake_case name, use that name like any other (as a prop "type", a "set" or an actor "who"), and describe it once in "new_assets": [{{"kind": "prop"|"set"|"character", "name": "smartphone", "description": "a black smartphone with a glowing blue screen", "tags": ["phone", "mobile", "screen"]}}]. It is modelled for you in the same low-poly style and saved, so every later episode reuses it. At most {max_new} new assets; prefer the kit and the library. A new prop stands on the floor at its "pos" [x, y] (optional "z" to put it on a desk, "scale", "turn" degrees). A new character moves like everyone else but does not speak; the youth and the philosopher are fixed and never remade.
+
 To keep it short: when a scene uses the same set and the same props as the \
 scene before, write "props": "same" instead of repeating them.
 Use the "image" of each scene as the brief. The speaker of a scene must be \
 an actor in it, unless the speaker is the narrator. Roughly 2.5 spoken words \
 per second, so "at" times fit the line.
 
-Return ONLY JSON: {{"stages": [STAGE for scene 1, STAGE for scene 2, ...]}} \
-with exactly one stage per scene, in order."""
+Return ONLY JSON: {{"stages": [STAGE for scene 1, STAGE for scene 2, ...], \
+"new_assets": [...] (leave it out when nothing new is needed)}} with \
+exactly one stage per scene, in order."""
 
 KIT_SUMMARY = (
     "places: " + ", ".join(stage_mod.SETS) + "; people: the youth, the philosopher, a father, "
@@ -238,10 +243,17 @@ def stage_scenes(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]
               "words": len(strip_tags(str(s.get("voice_text") or s["narration"])).split()), "image": s.get("image", "")}
              for i, s in enumerate(scenes, 1)]
 
+    made: list[dict[str, Any]] = []
+
     def check(data: dict[str, Any]) -> list[dict[str, Any]]:
         stages = data.get("stages")
         if not isinstance(stages, list) or len(stages) != len(scenes):
             raise ValueError(f"'stages' must be a list of exactly {len(scenes)} stages")
+        renames = ensure_assets(data.get("new_assets"), made, script.get("id"))
+        for stage in stages:
+            if isinstance(stage, dict):
+                rename_assets(stage, renames)
+        library = assets.known()
         out: list[dict[str, Any]] = []
         for number, (stage, scene) in enumerate(zip(stages, scenes), 1):
             if isinstance(stage, dict) and stage.get("props") == "same":
@@ -249,7 +261,7 @@ def stage_scenes(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]
                     raise ValueError(f"Scene {number}: \"props\": \"same\" needs the same set as the scene before")
                 stage["props"] = json.loads(json.dumps(out[-1]["props"]))
             try:
-                stage = stage_mod.validate(stage)
+                stage = stage_mod.validate(stage, library)
             except ValueError as exc:
                 raise ValueError(f"Scene {number} stage: {exc}") from exc
             if scene["speaker"] != "narrator" and scene["speaker"] not in {a["who"] for a in stage["actors"]}:
@@ -257,13 +269,69 @@ def stage_scenes(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]
             out.append(stage)
         return out
 
-    system = STAGE_SYSTEM.format(characters=characters, guide=stage_mod.GUIDE)
+    system = STAGE_SYSTEM.format(characters=characters, guide=stage_mod.GUIDE, library=assets.library_guide(),
+                                 max_new=max(config.ASSET_MAX_NEW, 0))
     user = f"The scenes (JSON):\n{json.dumps(brief, ensure_ascii=False)}"
     stages, _ = _ask_json(system, [{"role": "user", "content": user}], check,
                           model=config.STAGE_MODEL, effort=config.STAGE_EFFORT, step="staging", max_tokens=32000)
     for scene, stage in zip(scenes, stages):
         scene["stage"] = stage
+    if made:
+        script["assets_made"] = made
     return script
+
+
+def ensure_assets(new: Any, made: list[dict[str, Any]], short_id: str | None = None) -> dict[str, str]:
+    """Reuse or make every asset in the stager's "new_assets". Returns
+    {name the stager used: name in the library} for the ones that already
+    existed under another name."""
+    if not new:
+        return {}
+    if not isinstance(new, list):
+        raise ValueError("'new_assets' must be a list")
+    limit = max(config.ASSET_MAX_NEW, 0)
+    renames: dict[str, str] = {}
+    fresh = 0
+    for item in new:
+        if not isinstance(item, dict) or item.get("kind") not in assets.KINDS or not assets.slug(item.get("name")):
+            raise ValueError('every new asset needs "kind" (prop, set or character) and a "name"')
+        raw, name = str(item["name"]), assets.slug(item["name"])
+        hit = assets.find(item["kind"], name, str(item.get("description", "")), item.get("tags"))
+        if not hit:
+            if fresh >= limit:
+                raise ValueError(f"at most {limit} new assets per Short; build '{name}' from the kit or the "
+                                 "library instead" if limit else f"'{name}' is not in the kit or the library; "
+                                 "new assets are turned off, use what is there")
+            fresh += 1
+        try:
+            asset, now = assets.ensure(item["kind"], name, str(item.get("description", "")), item.get("tags"), short_id)
+        except RuntimeError as exc:
+            raise ValueError(f"the {item['kind']} '{name}' could not be made ({exc}); use the kit instead") from exc
+        if now:
+            made.append({"kind": asset["kind"], "name": asset["name"], "description": asset["description"]})
+        for alias in {raw, name}:
+            if alias != asset["name"]:
+                renames[alias] = asset["name"]
+    return renames
+
+
+def rename_assets(stage: dict[str, Any], renames: dict[str, str]) -> None:
+    """Point a stage at the library names (and accept "Smart Phone" for smart_phone)."""
+    def fix(value: Any) -> Any:
+        if isinstance(value, str):
+            return renames.get(value, renames.get(assets.slug(value), value))
+        return value
+    stage["set"] = fix(stage.get("set"))
+    for prop in stage.get("props") or []:
+        if isinstance(prop, dict):
+            prop["type"] = fix(prop.get("type"))
+    for actor in stage.get("actors") or []:
+        if isinstance(actor, dict):
+            actor["who"] = fix(actor.get("who"))
+            if isinstance(actor.get("look_at"), str):
+                actor["look_at"] = fix(actor["look_at"])
+    if isinstance(stage.get("camera"), dict) and isinstance(stage["camera"].get("focus"), str):
+        stage["camera"]["focus"] = fix(stage["camera"]["focus"])
 
 
 def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str = "",

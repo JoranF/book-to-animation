@@ -123,7 +123,18 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     times = voice_mod.scene_times(script, words, total)
 
     progress("visuals")
+    before_steps = llm.snapshot()
     scenes = visuals.make_visuals(script, times, job, words)
+    rebuilt = llm.since(before_steps)          # assets marked for rebuild were made again
+    if rebuilt:
+        merged = json.loads(json.dumps(state.get("llm") or {}))
+        for step, per in rebuilt.items():
+            for model, tok in per.items():
+                into = merged.setdefault(step, {}).setdefault(model, {"input_tokens": 0, "output_tokens": 0})
+                for key, value in tok.items():
+                    into[key] = into.get(key, 0) + value
+        state["llm"] = merged
+        _save(job / "state.json", state)
     music, music_info = visuals.make_music(job, total, short_id, script.get("music_mood"))
     effects, sfx_used = sfx.make_track(script, times, total, job / "sfx.wav", short_id)
 
@@ -153,6 +164,10 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
         "word_count": len(voice_mod.narration_text(script).split()),
         "scene_count": len(scenes),
         "sets": [s.get("stage", {}).get("set") for s in script["scenes"]],
+        # the asset library: what was made new for this Short, and every
+        # generated asset it used with its version (see b2a/assets.py)
+        "assets_made": script.get("assets_made") or [],
+        "assets_used": script.get("assets_used") or {},
         "voice": (f"elevenlabs:{state.get('voice_model') or config.ELEVENLABS_MODEL}" if state["voice"] == "elevenlabs"
                   else f"piper:{Path(config.PIPER_MODEL).stem}#{config.PIPER_SPEAKER}"),
         "speakers": sorted({voice_mod.speaker_of(s) for s in script["scenes"]}),
