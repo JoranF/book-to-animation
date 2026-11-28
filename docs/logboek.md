@@ -57,3 +57,13 @@ verandering een regel toe (datum, wat, waarom, link naar PR/commit).
 - [PR #3](https://github.com/JoranF/book-to-animation/pull/3) (open): de
   bolling (barrel warp) uit het CRT-effect gehaald.
 - Documentatie (deze map) gestart.
+
+## 28-11-2026: feedback-loop en automatisch posten
+
+- Joran: "de feedback-functie ook voor de boekvideo's, en het moet zichzelf verbeteren
+  op analytics en mijn feedback". Redo met feedback, vaste notities, cijfers uit Postiz
+  in de script-prompt en een Claude-playbook vanaf 8 geposte Shorts (`b2a/learn.py`,
+  [PR #7](https://github.com/JoranF/book-to-animation/pull/7)). Zie
+  [feedback-loop-en-autopost.md](feedback-loop-en-autopost.md).
+- In het clipper-dashboard: automatisch posten per account aan/uit en clips van één
+  upload spreiden over dagen ([stream-clipper PR #9](https://github.com/JoranF/stream-clipper/pull/9)).
