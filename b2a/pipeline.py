@@ -52,9 +52,12 @@ def made_episodes(book_slug: str) -> set[str]:
 def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | None = None,
                script: dict[str, Any] | None = None,
                progress: Callable[[str], None] = print,
-               episode_id: str | None = None) -> dict[str, Any]:
+               episode_id: str | None = None, redo_of: str | None = None,
+               feedback: str = "") -> dict[str, Any]:
     """Make one Short: from an episode of the plan ("next" = first one not made
-    yet), or from a free topic and idea."""
+    yet), or from a free topic and idea. With redo_of + feedback: a new version
+    of an earlier Short, its script rewritten with the owner's feedback."""
+    previous = _load(shorts_dir() / Path(redo_of).name / "script.json") if redo_of else None
     book = script_mod.load_book(book_slug)
     earlier = list_shorts()
     job = shorts_dir() / short_id if short_id else None
@@ -79,15 +82,15 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     progress("script")
     script = script or _load(job / "script.json")
     example = config.BOOKS_DIR / book_slug / "examples" / f"{episode['id']}.json"
-    if script is None and example.exists():
+    if script is None and example.exists() and not redo_of:
         script = _load(example)     # hand-checked script for this exact episode
     if script is None:
         before = dict(llm.usage)
-        avoid = [m["hook"] for m in earlier[:15] if m.get("hook")]
+        avoid = [m["hook"] for m in earlier[:15] if m.get("hook") and m["id"] != redo_of]
         trend = trends.latest(book_slug)
         state["trend_brief"] = trend["date"] if trend else None
         script = script_mod.write_script(book, episode, script_mod.load_learnings(), avoid,
-                                         trends.prompt_text(trend))
+                                         trends.prompt_text(trend), previous=previous, feedback=feedback)
         state["tokens"] = {k: llm.usage[k] - before[k] for k in before}
     script = script_mod.validate(script, book)
     _save(job / "script.json", script)
@@ -141,6 +144,8 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
         "music": music_info,
         "sfx": sorted(set(sfx_used)),
         "trend_brief": state.get("trend_brief"),
+        "redo_of": redo_of,
+        "feedback": feedback or None,
         "script_model": config.SCRIPT_MODEL if state.get("tokens") else "manual",
         "script_tokens": state.get("tokens"),
         "estimated_cost_usd": estimate_cost(script, state.get("tokens"), state["voice"] or "piper"),

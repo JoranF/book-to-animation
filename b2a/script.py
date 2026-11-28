@@ -104,7 +104,8 @@ def validate(script: dict[str, Any], book: dict[str, Any]) -> dict[str, Any]:
 
 
 def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str = "",
-                 avoid: list[str] | None = None, trends_brief: str = "") -> dict[str, Any]:
+                 avoid: list[str] | None = None, trends_brief: str = "",
+                 previous: dict[str, Any] | None = None, feedback: str = "") -> dict[str, Any]:
     """Write the script for one episode (see plan.py for what an episode is)."""
     characters = "\n".join(
         f'- "{key}": {c["prompt"]}' for key, c in book["characters"].items()
@@ -137,6 +138,17 @@ def write_script(book: dict[str, Any], episode: dict[str, Any], learnings: str =
             "from the last weeks). Use what fits this one idea; never copy a hook or "
             f"a title:\n{trends_brief}\n"
         )
+    if previous and feedback:
+        old = {k: previous.get(k) for k in ("title", "hook", "hook_type", "description", "hashtags", "music_mood")}
+        old["scenes"] = [{"speaker": sc.get("speaker"), "narration": sc.get("voice_text") or sc.get("narration"),
+                          "image": sc.get("image"), "stage": sc.get("stage")} for sc in previous.get("scenes") or []]
+        user += (
+            "\nThis is a REDO. The earlier version of this Short (JSON):\n"
+            f"{json.dumps(old, ensure_ascii=False)}\n\n"
+            f"The channel owner watched it and wants this changed:\n{feedback.strip()}\n"
+            "Write a new version that does what the feedback asks. Keep what the feedback does "
+            "not mention when it worked; every hard rule above still applies.\n"
+        )
     system = SYSTEM.format(characters=characters, guide=stage_mod.GUIDE,
                            moods="|".join(music.MOODS))
     messages: list[dict[str, Any]] = [{"role": "user", "content": user}]
@@ -160,5 +172,6 @@ def load_book(slug: str) -> dict[str, Any]:
 
 
 def load_learnings() -> str:
-    path: Path = config.DATA_DIR / "learnings.md"
-    return path.read_text() if path.exists() else ""
+    """The owner's notes, the numbers of posted Shorts and Claude's playbook (see learn.py)."""
+    from . import learn, pipeline
+    return learn.text(pipeline.list_shorts())
