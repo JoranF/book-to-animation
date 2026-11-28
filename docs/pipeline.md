@@ -20,7 +20,8 @@ ElevenLabs. `meta.json` bewaart per Short de kosten per stap
 (`cost_breakdown_usd`: script, script_fix, clarity, staging, voice), de tokens
 per stap en model (`llm_usage`) en de duidelijkheidsscore (`clarity`). Tot
 28-11-2026 kostte een door Claude geschreven Short ~$0,35-0,48 (zie logboek);
-met de gesplitste stappen is de verwachting ~$0,20-0,25. De stemprijs is een
+met de gesplitste stappen is de verwachting ~$0,20-0,25. Welk model welke stap
+doet kies je in het dashboard ("Claude models per step"); zie `b2a/settings.py`. De stemprijs is een
 aanname (`PRICE_TTS_PER_1K_CHARS`).
 
 ## Wat er per Short wordt opgeslagen

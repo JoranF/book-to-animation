@@ -66,6 +66,7 @@ YouTube en TikTok koppelen: zie [postiz-en-publiceren.md](postiz-en-publiceren.m
    | `ACESTEP_API_KEY` | nee | Zelfde waarde als in de acestep-app |
    | `SCRAPECREATORS_API_KEY` | nee | TikTok in de trend research |
    | `STUDIO_URL` | nee | Link naar het dashboard in de webapp |
+   | (modellen per stap) | nee | De vijf regels hieronder zijn alleen de standaard: in het dashboard (Book Shorts → "Claude models per step", of book.joranit.com) kies je per stap model en effort; dat wordt bewaard in `DATA_DIR/model_settings.json` en wint van de env |
    | `SCRIPT_MODEL` / `SCRIPT_EFFORT` | nee | Schrijft de dialoog. Standaard `claude-opus-5-5`, `high` |
    | `STAGE_MODEL` / `STAGE_EFFORT` | nee | Maakt de 3D-regie per scène. Standaard `claude-sonnet-5-5`, `medium` (goedkoopst: `claude-haiku-5-5`) |
    | `CHECK_MODEL` / `CHECK_EFFORT` | nee | Duidelijkheidscheck. Standaard `claude-sonnet-5-5`, `low` |

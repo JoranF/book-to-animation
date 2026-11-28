@@ -87,3 +87,8 @@ verandering een regel toe (datum, wat, waarom, link naar PR/commit).
   tokens per model en de duidelijkheidsscore; het dashboard toont ze.
   Nieuwe env-namen: `STAGE_MODEL`, `STAGE_EFFORT`, `CHECK_MODEL`, `CHECK_EFFORT`,
   `CLARITY_MIN`, `ANALYSIS_MODEL`, `ANALYSIS_EFFORT`.
+- Joran: "geef in de webfront de opties welk model voor wat". Per stap (dialoog,
+  3D-regie, duidelijkheidscheck, trends/playbook) model en effort kiezen, plus de
+  duidelijkheidsdrempel, in het dashboard en op book.joranit.com. Opgeslagen in
+  `DATA_DIR/model_settings.json` (`b2a/settings.py`), API `GET/PUT /api/settings/models`;
+  de env-variabelen blijven de standaard. Geldt vanaf de volgende Short.
