@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from . import music, pipeline, plan as plan_mod, script as script_mod, sfx, trends
+from . import music, pipeline, plan as plan_mod, script as script_mod, settings, sfx, trends
 
 
 def main() -> None:
@@ -29,6 +29,7 @@ def main() -> None:
     tracks = sub.add_parser("music", help="fill the ACE-Step music library (needs ACESTEP_URL)")
     tracks.add_argument("--mood", action="append", choices=list(music.MOODS))
     args = parser.parse_args()
+    settings.apply()   # the models chosen in the dashboard, if any
 
     if args.cmd == "make":
         script = json.loads(args.script.read_text()) if args.script else None

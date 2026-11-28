@@ -67,3 +67,28 @@ verandering een regel toe (datum, wat, waarom, link naar PR/commit).
   [feedback-loop-en-autopost.md](feedback-loop-en-autopost.md).
 - In het clipper-dashboard: automatisch posten per account aan/uit en clips van één
   upload spreiden over dagen ([stream-clipper PR #9](https://github.com/JoranF/stream-clipper/pull/9)).
+
+## 28-11-2026: kosten per Short omlaag en duidelijkere scripts
+
+- Joran: "videos kosten nu 40 cent in plaats van 10, wat is er veranderd?" en "de
+  verhalen zijn soms moeilijk te begrijpen". Gemeten in de `meta.json`'s op de server:
+  niets was duurder geworden. De Short van 11 cent (n1-02 *Anger is a tool*) had een
+  handgeschreven voorbeeldscript, dus geen Claude-aanroep. Alle Shorts met een
+  Claude-script kostten $0,35-0,48: Claude ~$0,21-0,35 (Opus 5.5 op effort high,
+  7.700-12.700 output-tokens, vooral denkwerk en de lange 3D-regie-JSON) en de stem
+  ~$0,11-0,14. De schatting rekende bovendien met $5/$25 in plaats van de echte
+  Opus 5.5-prijs $4/$20.
+- Script nu in stappen op het model dat erbij past: Opus schrijft alleen de dialoog,
+  Sonnet 5.5 doet een duidelijkheidscheck (score 1-10, één herkansing onder de 7) en
+  de 3D-regie (`"props": "same"` scheelt herhaling). Trend-brief en playbook ook op
+  Sonnet. Shorts korter: 80-105 woorden, 8-12 scènes (35-45 s). Schrijfregels voor
+  duidelijkheid: één idee in één zin, één alledaagse situatie van begin tot eind,
+  geen jargon, payoff recht uitgesproken. `meta.json` krijgt kosten per stap,
+  tokens per model en de duidelijkheidsscore; het dashboard toont ze.
+  Nieuwe env-namen: `STAGE_MODEL`, `STAGE_EFFORT`, `CHECK_MODEL`, `CHECK_EFFORT`,
+  `CLARITY_MIN`, `ANALYSIS_MODEL`, `ANALYSIS_EFFORT`.
+- Joran: "geef in de webfront de opties welk model voor wat". Per stap (dialoog,
+  3D-regie, duidelijkheidscheck, trends/playbook) model en effort kiezen, plus de
+  duidelijkheidsdrempel, in het dashboard en op book.joranit.com. Opgeslagen in
+  `DATA_DIR/model_settings.json` (`b2a/settings.py`), API `GET/PUT /api/settings/models`;
+  de env-variabelen blijven de standaard. Geldt vanaf de volgende Short.

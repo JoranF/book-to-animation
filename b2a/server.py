@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, learn, music, pipeline, plan as plan_mod, script as script_mod, trends
+from . import config, learn, music, pipeline, plan as plan_mod, script as script_mod, settings, trends
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -53,6 +53,7 @@ def worker() -> None:
         job = jobs[short_id]
         try:
             job["status"] = "running"
+            settings.apply()          # the models chosen in the dashboard
             pipeline.make_short(job["book"], job["topic"], job["idea"], short_id,
                                 progress=lambda step, job=job: job.update(step=step),
                                 episode_id=job["episode"] or None,
@@ -84,6 +85,7 @@ trend_runs: dict[str, dict[str, Any]] = {}
 
 def _run_trends(book: str) -> None:
     try:
+        settings.apply()
         result = trends.run(book)
         trend_runs[book] = {"status": "done", "date": result["date"]}
     except Exception as exc:  # noqa: BLE001 - shown in the API
@@ -260,6 +262,22 @@ def remove_note(note_id: str) -> dict[str, Any]:
     return {"notes": learn.delete_note(note_id)}
 
 
+@app.get("/api/settings/models", dependencies=[Depends(auth)])
+def get_model_settings() -> dict[str, Any]:
+    """Which Claude model and effort each step uses, with the choices and their prices."""
+    return settings.view()
+
+
+@app.put("/api/settings/models", dependencies=[Depends(auth)])
+def put_model_settings(body: dict[str, Any]) -> dict[str, Any]:
+    """{"script": {"model": ..., "effort": ...}, "staging": {...}, "clarity": {...}, "analysis": {...},
+    "clarity_min": 0-10} (steps left out keep their value), or {"reset": true}."""
+    try:
+        return settings.save(body)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+
+
 @app.get("/api/learnings", dependencies=[Depends(auth)])
 def get_learnings() -> dict[str, Any]:
     """What the next script is told: the owner's notes, the numbers and Claude's playbook."""
@@ -345,6 +363,9 @@ video{width:100%;border-radius:8px;background:#000}small{color:#aaa}.job{padding
 <select name=episode id=episode onchange="pick()"></select><div id=angle class=job hidden></div>
 <div id=own hidden><input name=topic placeholder="Your own topic">
 <textarea name=idea placeholder="Optional idea or angle"></textarea></div><button>Make Short</button></form>
+<details id=models><summary>Claude models per step</summary><form onsubmit="saveModels(event)"><div id=modelrows></div>
+<label>Clarity minimum (0 = check off) <input name=clarity_min type=number min=0 max=10></label>
+<button>Save models</button> <small id=modelmsg></small></form></details>
 <div id=jobs></div><h2>Shorts</h2><div class=grid id=shorts></div>
 <script>
 const jobsEl=document.getElementById('jobs'),shortsEl=document.getElementById('shorts'),epEl=document.getElementById('episode');
@@ -365,9 +386,18 @@ const esc0=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function load(){const d=await (await fetch('/api/shorts')).json();
 jobsEl.innerHTML=d.jobs.map(j=>`<div class=job>${esc(j.topic)}: <b>${esc(j.status)}</b> (${esc(j.step)}) ${esc(j.error)}</div>`).join('');
 const html=d.shorts.map(s=>`<div><video controls preload=none poster="/files/${esc(s.id)}/thumb.jpg" src="/files/${esc(s.id)}/short.mp4"></video>
-<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}, ${esc(s.review||'pending')}</small></div>`).join('');
+<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}${s.cost_breakdown_usd?' ('+Object.entries(s.cost_breakdown_usd).map(([k,v])=>esc(k)+' $'+esc(Number(v).toFixed(2))).join(', ')+')':''}${s.clarity?', clear '+esc(s.clarity.score)+'/10':''}, ${esc(s.review||'pending')}</small></div>`).join('');
 if(shortsEl.dataset.h!==html){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
-plan();load();setInterval(()=>{load();plan()},5000)</script>"""
+async function models(){const d=await (await fetch('/api/settings/models')).json();
+document.getElementById('modelrows').innerHTML=d.steps.map(s=>`<div class=job><b>${esc(s.label)}</b> <small>${esc(s.help)}</small>
+<select name="${esc(s.key)}.model">${d.models.map(m=>`<option value="${esc(m.id)}"${m.id===s.model?' selected':''}>${esc(m.name)} ($${m.price_in}/$${m.price_out} per M tokens)${m.id===s.default_model?' (default)':''}</option>`).join('')}</select>
+<select name="${esc(s.key)}.effort">${d.efforts.map(e=>`<option${e===s.effort?' selected':''}>${e}</option>`).join('')}</select></div>`).join('');
+document.querySelector('[name=clarity_min]').value=d.clarity_min}
+async function saveModels(e){e.preventDefault();const body={};for(const [k,v] of new FormData(e.target)){
+if(k==='clarity_min'){body.clarity_min=Number(v);continue}const [step,f]=k.split('.');(body[step]=body[step]||{})[f]=v}
+const r=await fetch('/api/settings/models',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+document.getElementById('modelmsg').textContent=r.ok?'Saved, used from the next Short':'Not saved: '+(await r.json()).detail;models()}
+plan();load();models();setInterval(()=>{load();plan()},5000)</script>"""
 
 
 @app.get("/", response_class=HTMLResponse, dependencies=[Depends(auth)])

@@ -43,7 +43,7 @@ def test_notes_and_numbers_reach_the_script_prompt(monkeypatch, tmp_path):
 def test_playbook_waits_for_enough_posts_and_a_day(monkeypatch, tmp_path):
     monkeypatch.setattr(learn.config, "DATA_DIR", tmp_path)
     calls = []
-    monkeypatch.setattr(llm, "ask", lambda system, messages, max_tokens=0: calls.append(messages) or
+    monkeypatch.setattr(llm, "ask", lambda system, messages, max_tokens=0, **kw: calls.append(messages) or
                         "Here you go:\n- Open with the youth's complaint\n- Keep it under 40 seconds")
     for i in range(7):
         short(tmp_path, f"s{i}", views=10 * i)
@@ -91,7 +91,7 @@ def test_feedback_patch_keeps_numbers(monkeypatch, tmp_path):
 def test_redo_prompt_carries_the_old_script_and_feedback(monkeypatch):
     sent = []
 
-    def fake_ask(system, messages, max_tokens=0):
+    def fake_ask(system, messages, max_tokens=0, **kw):
         sent.append(messages[0]["content"])
         raise RuntimeError("stop here")
     monkeypatch.setattr(llm, "ask", fake_ask)

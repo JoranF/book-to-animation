@@ -104,7 +104,7 @@ def test_episode_plan_is_complete_and_unique():
 def test_script_prompt_is_about_one_episode(monkeypatch):
     seen = {}
 
-    def fake_ask(system, messages, max_tokens=16000):
+    def fake_ask(system, messages, max_tokens=16000, **kw):
         seen.update(system=system, user=messages[0]["content"], turns=len(messages))
         return "Here it is: " + json.dumps(SCRIPT)
 
@@ -158,7 +158,7 @@ def test_make_short_with_fakes(tmp_path: Path, monkeypatch):
 
     calls = []
 
-    def fake_ask(system, messages, max_tokens=16000):
+    def fake_ask(system, messages, max_tokens=16000, **kw):
         calls.append(messages[0]["content"])
         llm.usage["input_tokens"] += 3000
         llm.usage["output_tokens"] += 5000

@@ -85,3 +85,31 @@ def test_books_list_and_auto_rotation(monkeypatch, tmp_path):
     assert len(set(picked)) == 3                                 # takes turns between books
     shorts = [{"book": "art-of-war", "episode": ep["id"]} for ep in plan.episodes("art-of-war")]
     assert plan.next_book(["art-of-war", "meditations"], shorts) == "meditations"
+
+
+def test_models_per_step_can_be_chosen_in_the_dashboard(monkeypatch, tmp_path):
+    from b2a import config, settings
+
+    monkeypatch.setenv("APP_PASSWORD", "secret")
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)
+    for attr in settings.DEFAULTS:              # restore whatever apply() changes
+        monkeypatch.setattr(config, attr, getattr(config, attr))
+    client = TestClient(server.app)
+    view = client.get("/api/settings/models", auth=ME).json()
+    assert [s["key"] for s in view["steps"]] == ["script", "staging", "clarity", "analysis"]
+    assert {m["id"] for m in view["models"]} >= {"claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"}
+    staging = next(s for s in view["steps"] if s["key"] == "staging")
+    assert staging["model"] == staging["default_model"] == settings.DEFAULTS["STAGE_MODEL"]
+
+    saved = client.put("/api/settings/models", auth=ME,
+                       json={"staging": {"model": "claude-haiku-5-5", "effort": "low"}, "clarity_min": 0}).json()
+    staging = next(s for s in saved["steps"] if s["key"] == "staging")
+    assert staging["model"] == "claude-haiku-5-5" and saved["clarity_min"] == 0
+    assert config.STAGE_MODEL == "claude-haiku-5-5" and config.STAGE_EFFORT == "low" and config.CLARITY_MIN == 0
+    assert config.SCRIPT_MODEL == settings.DEFAULTS["SCRIPT_MODEL"]       # untouched step keeps its value
+    assert client.put("/api/settings/models", auth=ME, json={"script": {"model": "gpt-9"}}).status_code == 422
+    assert client.put("/api/settings/models", auth=ME, json={"clarity_min": 11}).status_code == 422
+
+    back = client.put("/api/settings/models", auth=ME, json={"reset": True}).json()
+    assert config.STAGE_MODEL == settings.DEFAULTS["STAGE_MODEL"] and back["clarity_min"] == settings.DEFAULTS["CLARITY_MIN"]
+    assert "Claude models per step" in client.get("/", auth=ME).text

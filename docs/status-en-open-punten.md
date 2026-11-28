@@ -15,7 +15,11 @@ Stand: 27-11-2026. Werk dit bij als iets klaar is of erbij komt.
   (alleen met mocks getest). Kijk mee bij de eerste echte run.
 - Posten via Postiz naar YouTube/TikTok.
 - `SFX_VOLUME` 0.25 is een gok; nog niet beluisterd in een echte Short.
-- Kostprijzen in `meta.json` zijn aannames.
+- Het gesplitste script (dialoog op Opus, check en 3D-regie op Sonnet 5.5) is alleen
+  met mocks getest. Bij de eerste echte Short: `cost_breakdown_usd`, `clarity` en de
+  animatie vergelijken met een oude Short. Is de regie zwakker, zet `STAGE_MODEL`
+  terug op `claude-opus-5-5`.
+- De stemprijs in `meta.json` is een aanname (`PRICE_TTS_PER_1K_CHARS`).
 
 ## Open
 

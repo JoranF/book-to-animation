@@ -10,14 +10,19 @@ Dit is de uitleg in gewone taal, voor wie het moet leren.
 | # | Stap | Wat gebeurt er | Code |
 | --- | --- | --- | --- |
 | 0 | **Episodeplan** | Het boek is opgeknipt in hoofdstukken ("nachten") met per hoofdstuk afleveringen. Elke aflevering is één smal idee met een eigen hook, invalshoek en format (myth_buster, mini_story, one_question, dialogue, challenge, reframe). *The Courage to Be Disliked* heeft er 45 (`n1-01` t/m `n5-10`). "Next" pakt de eerste die nog niet gemaakt is, en de hoofdstukken wisselen elkaar af | `books/<boek>/episodes.json`, `b2a/plan.py` |
-| 1 | **Script** | Claude schrijft een snel gesprek tussen de Jongeman en de Filosoof (verteller alleen voor overgangen), in eigen woorden, geen citaten uit het boek. Elke zin krijgt regie voor de stem (`[sighs]`, `[pause]`) en een 3D-"stage": welke set, props, wie staat waar, welke beweging, welke camera. Ook kiest Claude een muziekstemming | `b2a/llm.py`, `b2a/script.py`, `b2a/stage.py` |
+| 1 | **Script** | In drie stappen. (a) **Dialoog** (Opus 5.5): een snel gesprek tussen de Jongeman en de Filosoof over één alledaagse situatie, in eigen woorden, met regie voor de stem (`[sighs]`, `[pause]`), een beeldomschrijving per scène en een muziekstemming. (b) **Duidelijkheidscheck** (Sonnet 5.5): een "kijker die het idee nooit hoorde" geeft een score 1-10 en noemt verwarrende zinnen; onder de 7 herschrijft de schrijver één keer. (c) **3D-regie** (Sonnet 5.5): per scène de "stage": set, props, wie staat waar, welke beweging, welke camera | `b2a/llm.py`, `b2a/script.py`, `b2a/stage.py` |
 | 2 | **Stem** | ElevenLabs Eleven v4 spreekt elke zin in met de stem van dat personage, met tijdstempels per woord voor de captions. Weigert v4, dan Multilingual v2; zonder key de gratis Piper-stem | `b2a/voice.py` |
 | 3 | **Beeld** | Headless Blender bouwt de low-poly personages en sets in code en rendert elke scène (360x640, 15 fps, CPU). Mond beweegt bij praten, luisteraar reageert (schrikken, facepalm, lachen), camera wisselt tussen two-shot en close-ups | `b2a/world.py`, `b2a/blender_render.py`, `b2a/visuals.py` |
 | 4 | **Montage** | FFmpeg knipt op de stem, legt het CRT-filter erover, brandt captions woord voor woord in (font Press Start 2P), mixt retro-geluidseffecten en muziek, en normaliseert het volume | `b2a/render.py`, `b2a/sfx.py`, `b2a/music.py` |
 
 Een Short rendert in ~6-10 minuten op 4 cores. Kosten: alleen Claude en
-ElevenLabs, ruwweg $0,10-0,40 per Short (de prijzen in `meta.json` zijn een
-schatting).
+ElevenLabs. `meta.json` bewaart per Short de kosten per stap
+(`cost_breakdown_usd`: script, script_fix, clarity, staging, voice), de tokens
+per stap en model (`llm_usage`) en de duidelijkheidsscore (`clarity`). Tot
+28-11-2026 kostte een door Claude geschreven Short ~$0,35-0,48 (zie logboek);
+met de gesplitste stappen is de verwachting ~$0,20-0,25. Welk model welke stap
+doet kies je in het dashboard ("Claude models per step"); zie `b2a/settings.py`. De stemprijs is een
+aanname (`PRICE_TTS_PER_1K_CHARS`).
 
 ## Wat er per Short wordt opgeslagen
 

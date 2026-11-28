@@ -20,9 +20,12 @@ Philosopher and the Youth as recurring characters.
 | 4. Edit | Cuts on the voice, CRT look, word-by-word captions, chiptune music composed in code, loudness | FFmpeg |
 
 Because the pictures and the music are made on our own server, a Short only
-costs the script (Claude) and the voice (ElevenLabs): roughly $0.10 to $0.40,
-or nothing with the free voice and a ready-made script. `meta.json` stores an
-estimate per Short (the prices behind it are assumptions, see `.env.example`).
+costs the script (Claude) and the voice (ElevenLabs): roughly $0.20 to $0.25,
+or nothing with the free voice and a ready-made script. The script is written
+in steps: the dialogue on `SCRIPT_MODEL` (Opus), a clarity check on
+`CHECK_MODEL` and the 3D staging on `STAGE_MODEL` (both Sonnet). `meta.json`
+stores the cost per step (`cost_breakdown_usd`); the voice price is an
+assumption, see `.env.example`.
 Rendering takes roughly 6 to 10 minutes on 4 CPU cores, no GPU needed.
 
 ### Episodes

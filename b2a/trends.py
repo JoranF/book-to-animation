@@ -217,7 +217,8 @@ def brief(book: dict[str, Any], episodes: list[dict[str, Any]], items: list[dict
     user = (f"Book of this season: {book['title']}. About: {book['summary']}\n\n"
             f"Posts ({len(top)} of {len(items)}, best lift first):\n" + "\n".join(lines) +
             "\n\nPlanned episodes:\n" + "\n".join(plan))
-    text = llm.ask(BRIEF_SYSTEM, [{"role": "user", "content": user}], 16000)
+    text = llm.ask(BRIEF_SYSTEM, [{"role": "user", "content": user}], 16000,
+                   model=config.ANALYSIS_MODEL, effort=config.ANALYSIS_EFFORT, step="trends")
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
         raise RuntimeError("Claude did not return a trend brief")
