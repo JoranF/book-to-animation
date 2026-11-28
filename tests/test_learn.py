@@ -104,3 +104,28 @@ def test_redo_prompt_carries_the_old_script_and_feedback(monkeypatch):
     except RuntimeError:
         pass
     assert "This is a REDO" in sent[0] and "make the youth angrier" in sent[0] and "Old hook" in sent[0]
+
+
+def test_retention_reaches_the_script_prompt(monkeypatch, tmp_path):
+    """The dashboard's YouTube retention (watch %, 3 s hold, drop-offs) is traced to scenes and words."""
+    monkeypatch.setattr(learn.config, "DATA_DIR", tmp_path)
+    for i in range(5):
+        m = short(tmp_path, f"r{i}", views=100 * (i + 1), fmt="dialogue" if i % 2 else "myth_buster", hook=f"hook {i}",
+                  scene_times=[[0, 4], [4, 20], [20, 38]])
+        m["analytics"].update({"avg_view_percentage": 30 + 5 * i, "hold_3s": 60 + 5 * i, "half_gone_at": 9,
+                               "drop_offs": [{"at": 5.0, "lost": 12 + i}]})
+        job = tmp_path / "shorts" / m["id"]
+        (job / "meta.json").write_text(json.dumps(m))
+        (job / "script.json").write_text(json.dumps({"scenes": [
+            {"speaker": "philosopher", "narration": "Opening line"},
+            {"speaker": "youth", "narration": "A slow setup that loses people"},
+            {"speaker": "philosopher", "narration": "The point"}]}))
+        (job / "words.json").write_text(json.dumps([{"text": "slow", "start": 4.5, "end": 4.8}]))
+    perf = learn.performance(pipeline.list_shorts())
+    ret = perf["retention"]
+    assert ret["posts"] == 5 and ret["watched"] == 40 and ret["hold_3s"] == 70
+    assert ret["drops"][0]["scene"] == 2 and ret["drops"][0]["speaker"] == "youth" and ret["drops"][0]["said"] == "slow"
+    assert ret["drops_by_scene"]["scene 2"]["drops"] == 5
+    text = script.load_learnings()
+    assert "Retention on YouTube (5 Shorts" in text and "A slow setup that loses people" in text
+    assert "Watched by format" in text and "Hooks that kept the most viewers past 3s" in text

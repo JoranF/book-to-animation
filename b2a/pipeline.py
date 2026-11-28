@@ -133,6 +133,8 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
         "hashtags": script.get("hashtags"),
         "language": "en",
         "duration_seconds": round(total, 1),
+        # where each scene starts and ends (s), so drop-off points can be traced back to a scene
+        "scene_times": [[round(a, 2), round(b, 2)] for a, b in times],
         "word_count": len(voice_mod.narration_text(script).split()),
         "scene_count": len(scenes),
         "sets": [s.get("stage", {}).get("set") for s in script["scenes"]],
