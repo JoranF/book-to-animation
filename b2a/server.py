@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 
-from . import config, music, pipeline, plan as plan_mod, script as script_mod, trends
+from . import config, learn, music, pipeline, plan as plan_mod, script as script_mod, trends
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -55,8 +55,11 @@ def worker() -> None:
             job["status"] = "running"
             pipeline.make_short(job["book"], job["topic"], job["idea"], short_id,
                                 progress=lambda step, job=job: job.update(step=step),
-                                episode_id=job["episode"] or None)
+                                episode_id=job["episode"] or None,
+                                redo_of=job.get("redo_of"), feedback=job.get("feedback") or "")
             job["status"] = "done"
+            if job.get("redo_of"):
+                replaced(job["redo_of"], short_id)
         except Exception as exc:  # noqa: BLE001 - report every failure to the UI
             traceback.print_exc()
             job.update(status="failed", error=str(exc)[:500])
@@ -190,15 +193,77 @@ class Feedback(BaseModel):
 
 @app.patch("/api/shorts/{short_id}/feedback", dependencies=[Depends(auth)])
 def update_feedback(short_id: str, body: Feedback) -> dict[str, Any]:
-    """Feedback loop: store YouTube id and numbers next to hook, topic and length."""
-    path = short_path(short_id, "meta.json")
-    if not path.exists():
-        raise HTTPException(404, "Unknown Short")
-    meta = json.loads(path.read_text())
-    meta["youtube"].update(body.youtube)
-    meta["analytics"].update(body.analytics)
+    """Feedback loop: the dashboard reports the platform numbers of a posted Short every hour;
+    they are kept next to its creative choices and steer the next scripts (learn.py)."""
+    path, meta = _meta(short_id)
+    meta.setdefault("youtube", {}).update(body.youtube)
+    meta.setdefault("analytics", {}).update(body.analytics)
     path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+    if body.analytics:
+        learn.refresh_in_background(pipeline.list_shorts)
     return meta
+
+
+class Redo(BaseModel):
+    feedback: str = Field(min_length=3, max_length=2000)
+    remember: bool = True          # also a note for every future Short
+
+
+def replaced(old_id: str, new_id: str) -> None:
+    """The redo is done: the old version points to it, and leaves the queue unless it was posted."""
+    try:
+        path, meta = _meta(old_id)
+    except HTTPException:
+        return
+    meta["redone_as"] = new_id
+    if meta.get("review", "pending") != "posted":
+        meta["review"] = "rejected"
+    path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+
+
+@app.post("/api/shorts/{short_id}/redo", dependencies=[Depends(auth)])
+def redo_short(short_id: str, body: Redo) -> dict[str, Any]:
+    """Make a new version of a Short with the owner's feedback (new id; the old one is kept)."""
+    _, meta = _meta(short_id)
+    for job in jobs.values():
+        if job.get("redo_of") == meta["id"] and job["status"] in ("queued", "running"):
+            return job                                  # already being redone
+    if body.remember:
+        learn.add_note(body.feedback, source=f"redo of {meta.get('episode') or meta['id']}")
+    new_id = pipeline.new_id(f"{meta.get('episode') or ''}-{meta.get('topic') or 'redo'}")
+    jobs[new_id] = {"id": new_id, "status": "queued", "step": "queued", "book": meta["book"],
+                    "episode": meta.get("episode") or "", "topic": meta.get("topic") or meta.get("title") or "",
+                    "idea": meta.get("idea") or "", "redo_of": meta["id"], "feedback": body.feedback.strip()}
+    todo.put(new_id)
+    return jobs[new_id]
+
+
+class Note(BaseModel):
+    text: str = Field(min_length=3, max_length=1000)
+
+
+@app.get("/api/notes", dependencies=[Depends(auth)])
+def get_notes() -> dict[str, Any]:
+    return {"notes": learn.notes()}
+
+
+@app.post("/api/notes", dependencies=[Depends(auth)])
+def post_note(body: Note) -> dict[str, Any]:
+    try:
+        return {"notes": learn.add_note(body.text, source="note")}
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.delete("/api/notes/{note_id}", dependencies=[Depends(auth)])
+def remove_note(note_id: str) -> dict[str, Any]:
+    return {"notes": learn.delete_note(note_id)}
+
+
+@app.get("/api/learnings", dependencies=[Depends(auth)])
+def get_learnings() -> dict[str, Any]:
+    """What the next script is told: the owner's notes, the numbers and Claude's playbook."""
+    return learn.summary(pipeline.list_shorts())
 
 
 # --- what a shared dashboard (see studio/) reads: the same small contract every pipeline offers ---
