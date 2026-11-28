@@ -66,8 +66,11 @@ YouTube en TikTok koppelen: zie [postiz-en-publiceren.md](postiz-en-publiceren.m
    | `ACESTEP_API_KEY` | nee | Zelfde waarde als in de acestep-app |
    | `SCRAPECREATORS_API_KEY` | nee | TikTok in de trend research |
    | `STUDIO_URL` | nee | Link naar het dashboard in de webapp |
-   | `SCRIPT_MODEL` | nee | Standaard `claude-opus-5-5` |
-   | `SCRIPT_EFFORT` | nee | `low`/`medium`/`high` (standaard high) |
+   | `SCRIPT_MODEL` / `SCRIPT_EFFORT` | nee | Schrijft de dialoog. Standaard `claude-opus-5-5`, `high` |
+   | `STAGE_MODEL` / `STAGE_EFFORT` | nee | Maakt de 3D-regie per scène. Standaard `claude-sonnet-5-5`, `medium` (goedkoopst: `claude-haiku-5-5`) |
+   | `CHECK_MODEL` / `CHECK_EFFORT` | nee | Duidelijkheidscheck. Standaard `claude-sonnet-5-5`, `low` |
+   | `CLARITY_MIN` | nee | Score (1-10) waaronder de schrijver één herkansing krijgt. Standaard 7, `0` = check uit |
+   | `ANALYSIS_MODEL` / `ANALYSIS_EFFORT` | nee | Trend-brief en playbook. Standaard `claude-sonnet-5-5`, `medium` |
    | `ELEVENLABS_VOICE_NARRATOR` / `_PHILOSOPHER` / `_YOUTH` | nee | Voice-id's per personage |
    | `ELEVENLABS_MODEL`, `ELEVENLABS_FALLBACK_MODEL`, `ELEVENLABS_STABILITY` | nee | Standaard `eleven_v4`, `eleven_multilingual_v2`, 0.4 |
    | `TTS_BACKEND` | nee | `auto`, `elevenlabs` of `piper` |
@@ -75,7 +78,7 @@ YouTube en TikTok koppelen: zie [postiz-en-publiceren.md](postiz-en-publiceren.m
    | `MUSIC_BACKEND`, `MUSIC_PER_MOOD`, `ACESTEP_TIMEOUT` | nee | `auto`, 4, 900 |
    | `TRENDS_MAX_AGE_DAYS` | nee | 14 |
    | `RENDER_WORKERS` | nee | Scènes tegelijk renderen (2) |
-   | `PRICE_*` | nee | Alleen voor de kostenschatting in `meta.json` |
+   | `PRICE_*` | nee | Alleen voor de kostenschatting in `meta.json`. Claude-prijzen staan per model in `config.MODEL_PRICES`; zet `PRICE_TTS_PER_1K_CHARS` op wat je ElevenLabs-abonnement echt kost |
 
 6. Deploy (~15 min). Check https://book.joranit.com: inlogscherm met basic auth.
 

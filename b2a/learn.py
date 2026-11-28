@@ -301,7 +301,8 @@ def refresh_playbook(shorts: list[dict[str, Any]], force: bool = False) -> dict[
     from . import llm
     owner = "\n".join(f"- {n['text']}" for n in notes()) or "(none)"
     text = llm.ask(PLAYBOOK_SYSTEM, [{"role": "user", "content":
-                   f"{_numbers_text(perf)}\n\nThe owner's notes:\n{owner}"}], 4000)
+                   f"{_numbers_text(perf)}\n\nThe owner's notes:\n{owner}"}], 4000,
+                   model=config.ANALYSIS_MODEL, effort=config.ANALYSIS_EFFORT, step="playbook")
     rules = [line.strip() for line in text.splitlines() if line.strip().startswith("- ")][:8]
     if not rules:
         return None

@@ -34,15 +34,29 @@ def new_id(topic: str) -> str:
     return f"{datetime.now(timezone.utc):%Y%m%d-%H%M%S}-{_slug(topic)}-{uuid.uuid4().hex[:4]}"
 
 
-def estimate_cost(script: dict[str, Any], tokens: dict[str, int] | None, voice_backend: str) -> float:
-    """Pictures and music are made on our own server, so only Claude and ElevenLabs cost money."""
+def voice_chars(script: dict[str, Any]) -> int:
+    """Characters sent to the voice model (the acting model also reads the [tags])."""
+    acting = voice_mod.acts(config.ELEVENLABS_MODEL)
+    return sum(len(((s.get("voice_text") if acting else None) or s["narration"]).strip()) for s in script["scenes"])
+
+
+def cost_breakdown(script: dict[str, Any], llm_used: dict[str, Any] | None, voice_backend: str,
+                   tokens: dict[str, int] | None = None) -> dict[str, float]:
+    """USD per step. Pictures, music and sound are made on our own server, so only
+    Claude (per step and model) and ElevenLabs cost money."""
     p = config.PRICES
-    tokens = tokens or {}
-    cost = (tokens.get("input_tokens", 0) * p["llm_in_per_mtok"]
-            + tokens.get("output_tokens", 0) * p["llm_out_per_mtok"]) / 1e6
+    out = {step: round(usd, 4) for step, usd in llm.cost(llm_used or {}).items()}
+    if not llm_used and tokens:          # Shorts from before the split: one model, totals only
+        p_in, p_out = config.model_price(config.SCRIPT_MODEL)
+        out["script"] = round((tokens.get("input_tokens", 0) * p_in + tokens.get("output_tokens", 0) * p_out) / 1e6, 4)
     if voice_backend == "elevenlabs":
-        cost += len(voice_mod.narration_text(script)) / 1000 * p["tts_per_1k_chars"]
-    return round(cost, 2)
+        out["voice"] = round(voice_chars(script) / 1000 * p["tts_per_1k_chars"], 4)
+    return out
+
+
+def estimate_cost(script: dict[str, Any], tokens: dict[str, int] | None, voice_backend: str,
+                  llm_used: dict[str, Any] | None = None) -> float:
+    return round(sum(cost_breakdown(script, llm_used, voice_backend, tokens).values()), 2)
 
 
 def made_episodes(book_slug: str) -> set[str]:
@@ -85,13 +99,14 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
     if script is None and example.exists() and not redo_of:
         script = _load(example)     # hand-checked script for this exact episode
     if script is None:
-        before = dict(llm.usage)
+        before, before_steps = dict(llm.usage), llm.snapshot()
         avoid = [m["hook"] for m in earlier[:15] if m.get("hook") and m["id"] != redo_of]
         trend = trends.latest(book_slug)
         state["trend_brief"] = trend["date"] if trend else None
         script = script_mod.write_script(book, episode, script_mod.load_learnings(), avoid,
                                          trends.prompt_text(trend), previous=previous, feedback=feedback)
         state["tokens"] = {k: llm.usage[k] - before[k] for k in before}
+        state["llm"] = llm.since(before_steps)
     script = script_mod.validate(script, book)
     _save(job / "script.json", script)
     _save(job / "state.json", state)
@@ -150,7 +165,12 @@ def make_short(book_slug: str, topic: str = "", idea: str = "", short_id: str | 
         "feedback": feedback or None,
         "script_model": config.SCRIPT_MODEL if state.get("tokens") else "manual",
         "script_tokens": state.get("tokens"),
-        "estimated_cost_usd": estimate_cost(script, state.get("tokens"), state["voice"] or "piper"),
+        # tokens per step (script, script_fix, clarity, staging) and model
+        "llm_usage": state.get("llm"),
+        "clarity": script.get("clarity"),
+        "idea_sentence": script.get("idea"),
+        "cost_breakdown_usd": cost_breakdown(script, state.get("llm"), state["voice"] or "piper", state.get("tokens")),
+        "estimated_cost_usd": estimate_cost(script, state.get("tokens"), state["voice"] or "piper", state.get("llm")),
         "render_seconds": round(time.time() - started),
         "files": {"video": "short.mp4", "thumbnail": "thumb.jpg", "script": "script.json"},
         # Filled in later by the upload + analytics steps (feedback loop).

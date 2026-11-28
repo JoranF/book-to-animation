@@ -12,8 +12,22 @@ FONT_FILE = ASSETS_DIR / "fonts" / "PressStart2P-Regular.ttf"
 FONT_NAME = "Press Start 2P"
 
 # --- script writing (Claude API, key in ANTHROPIC_API_KEY) ---------------
+# The script is written in steps, each on the model that fits it:
+# - the dialogue (the creative part that decides engagement): SCRIPT_MODEL
+# - the 3D staging of every scene (long, mechanical JSON): STAGE_MODEL
+# - the clarity check by a "first-time viewer": CHECK_MODEL
+# - trend briefs and the playbook from the numbers: ANALYSIS_MODEL
 SCRIPT_MODEL = os.environ.get("SCRIPT_MODEL", "claude-opus-5-5")
-SCRIPT_EFFORT = os.environ.get("SCRIPT_EFFORT", "high")  # low | medium | high
+SCRIPT_EFFORT = os.environ.get("SCRIPT_EFFORT", "high")  # low | medium | high | xhigh | max
+STAGE_MODEL = os.environ.get("STAGE_MODEL", "claude-sonnet-5-5")
+STAGE_EFFORT = os.environ.get("STAGE_EFFORT", "medium")
+CHECK_MODEL = os.environ.get("CHECK_MODEL", "claude-sonnet-5-5")
+CHECK_EFFORT = os.environ.get("CHECK_EFFORT", "low")
+ANALYSIS_MODEL = os.environ.get("ANALYSIS_MODEL", "claude-sonnet-5-5")
+ANALYSIS_EFFORT = os.environ.get("ANALYSIS_EFFORT", "medium")
+# Clarity check: a score from 1 to 10; below CLARITY_MIN the writer gets one
+# chance to fix the lines the checker did not understand. 0 turns it off.
+CLARITY_MIN = int(os.environ.get("CLARITY_MIN", "7"))
 
 # --- voice ---------------------------------------------------------------
 # auto: ElevenLabs when ELEVENLABS_API_KEY is set, else the free local voice.
@@ -60,10 +74,26 @@ MUSIC_PER_MOOD = int(os.environ.get("MUSIC_PER_MOOD", "4"))          # library s
 TRENDS_MAX_AGE_DAYS = int(os.environ.get("TRENDS_MAX_AGE_DAYS", "14"))
 TAIL_SECONDS = 0.5  # silence after the last word
 
-# Rough USD prices for the cost estimate stored with every Short. They are
-# assumptions: set them to what your own plans really charge.
+# USD prices for the cost estimate stored with every Short. Claude list prices
+# per million tokens (input, output); a model not in this list uses the
+# PRICE_LLM_* fallback. The voice price is an assumption: set it to what your
+# ElevenLabs plan really charges per 1,000 characters.
+MODEL_PRICES = {
+    "claude-opus-5-5": (4.0, 20.0),
+    "claude-opus-5": (5.0, 25.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-sonnet-5-5": (2.0, 10.0),
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-haiku-5-5": (0.10, 0.50),
+    "claude-fable-5-2": (8.0, 40.0),
+}
 PRICES = {
     "tts_per_1k_chars": float(os.environ.get("PRICE_TTS_PER_1K_CHARS", "0.20")),
     "llm_in_per_mtok": float(os.environ.get("PRICE_LLM_IN_PER_MTOK", "5")),
     "llm_out_per_mtok": float(os.environ.get("PRICE_LLM_OUT_PER_MTOK", "25")),
 }
+
+
+def model_price(model: str) -> tuple[float, float]:
+    """(input, output) USD per million tokens."""
+    return MODEL_PRICES.get(model, (PRICES["llm_in_per_mtok"], PRICES["llm_out_per_mtok"]))

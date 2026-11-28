@@ -128,7 +128,7 @@ def test_acestep_failure_falls_back_to_chiptune(tmp_path, monkeypatch):
 def test_script_asks_for_a_music_mood(monkeypatch):
     seen = {}
 
-    def fake_ask(system, messages, max_tokens=16000):
+    def fake_ask(system, messages, max_tokens=16000, **kw):
         seen["system"], seen["user"] = system, messages[0]["content"]
         return json.dumps({**SCRIPT, "music_mood": "warm"})
 
@@ -168,7 +168,7 @@ def test_trend_run_brief_and_next_episode(tmp_path, monkeypatch):
     monkeypatch.setattr(trends, "scrapecreators", lambda p, q: [])
     seen = {}
 
-    def fake_ask(system, messages, max_tokens=16000):
+    def fake_ask(system, messages, max_tokens=16000, **kw):
         seen["user"] = messages[0]["content"]
         return json.dumps({"summary": "People pleasing is hot.", "topics": [{"topic": "people pleasing", "why": "3 posts 5x"}],
                            "hook_patterns": [{"pattern": "you-statement about a habit"}],

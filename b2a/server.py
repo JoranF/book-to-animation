@@ -365,7 +365,7 @@ const esc0=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function load(){const d=await (await fetch('/api/shorts')).json();
 jobsEl.innerHTML=d.jobs.map(j=>`<div class=job>${esc(j.topic)}: <b>${esc(j.status)}</b> (${esc(j.step)}) ${esc(j.error)}</div>`).join('');
 const html=d.shorts.map(s=>`<div><video controls preload=none poster="/files/${esc(s.id)}/thumb.jpg" src="/files/${esc(s.id)}/short.mp4"></video>
-<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}, ${esc(s.review||'pending')}</small></div>`).join('');
+<b>${esc(s.title)}</b><br><small>${esc(s.episode||'')} ${esc(s.topic)}, ${esc(s.duration_seconds)}s, $${esc(s.estimated_cost_usd)}${s.cost_breakdown_usd?' ('+Object.entries(s.cost_breakdown_usd).map(([k,v])=>esc(k)+' $'+esc(Number(v).toFixed(2))).join(', ')+')':''}${s.clarity?', clear '+esc(s.clarity.score)+'/10':''}, ${esc(s.review||'pending')}</small></div>`).join('');
 if(shortsEl.dataset.h!==html){shortsEl.innerHTML=html;shortsEl.dataset.h=html}}
 plan();load();setInterval(()=>{load();plan()},5000)</script>"""
 
